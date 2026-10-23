@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   caminho,
   CURRICULO,
@@ -50,24 +51,30 @@ function BlocoDoManual({ bloco, idioma }: { bloco: Bloco; idioma: Idioma }) {
           </div>
         </div>
       );
-    case "exemplo":
+    case "exemplo": {
       // o comando, que abre o que ele descreve quando há para onde ir, e a explicação embaixo
+      const comando = <b>{bloco.comando}</b>;
+      const destino = bloco.abre;
+      const link = !destino ? (
+        comando
+      ) : /^https?:/.test(destino) ? (
+        <a href={destino} target="_blank" rel="noopener noreferrer">
+          {comando}
+        </a>
+      ) : destino.startsWith("/") && !destino.endsWith(".pdf") ? (
+        <Link href={destino}>{comando}</Link>
+      ) : (
+        <a href={destino}>{comando}</a>
+      );
       return (
         <div className={estilos.item}>
-          <div className={estilos.rotulo}>
-            {bloco.abre ? (
-              <a href={bloco.abre} {...(/^https?:/.test(bloco.abre) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                <b>{bloco.comando}</b>
-              </a>
-            ) : (
-              <b>{bloco.comando}</b>
-            )}
-          </div>
+          <div className={estilos.rotulo}>{link}</div>
           <div className={estilos.corpo}>
             <Texto texto={bloco.texto} idioma={idioma} />
           </div>
         </div>
       );
+    }
     case "campos": {
       const largura = Math.max(...bloco.linhas.map(([r]) => semMarcacao(r).length)) + 2;
       return (

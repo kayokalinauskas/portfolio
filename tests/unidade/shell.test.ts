@@ -78,6 +78,10 @@ describe("interpretar", () => {
     expect(interpretar("kayo --integrations", ctx({ idioma: "en" })).linhas[0]).toMatch(/^REST and SOAP/);
   });
 
+  it("o exemplo kayo --sql da página principal mostra a opção, não o texto do exemplo", () => {
+    expect(interpretar("kayo --sql", ctx()).linhas[0]).toMatch(/^PostgreSQL/);
+  });
+
   it("uma opção que não existe é recusada, sem inventar nada", () => {
     expect(interpretar("kayo --python", ctx()).linhas).toEqual([
       "kayo: opção desconhecida: --python",

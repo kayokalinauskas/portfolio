@@ -70,17 +70,21 @@ export function interpretar(entrada: string, ctx: Contexto): Resposta {
 
   switch (nome) {
     case "kayo": {
+      // Os comandos de verdade vêm antes dos exemplos: um exemplo como "kayo --sql" só
+      // ilustra o comando, e o prompt responde o que o comando responde.
+      if (!args.length) return fazer({ tipo: "manual", pagina: "kayo" });
+      if (args.length === 1) {
+        if (args[0] === "--curriculo" || args[0] === "--resume") return fazer({ tipo: "abrir", endereco: ctx.curriculo.url });
+        if (args[0] === "--email") return fazer({ tipo: "abrir", endereco: `mailto:${EMAIL}` });
+        if (args[0] === "--github") return fazer({ tipo: "abrir", endereco: GITHUB });
+        if (args[0] === "--linkedin") return fazer({ tipo: "abrir", endereco: LINKEDIN });
+        const pagina = `kayo-${args[0]}`;
+        if (ehPagina(pagina)) return fazer({ tipo: "manual", pagina });
+      }
+      if (args.every((a) => a.startsWith("--"))) return opcoes(args, ctx.idioma);
       const exemplo = exemplosDe(ctx.idioma).find((x) => x.comando === comando);
       if (exemplo?.abre) return fazer({ tipo: "abrir", endereco: exemplo.abre });
       if (exemplo) return so(exemplo.texto);
-      if (!args.length) return fazer({ tipo: "manual", pagina: "kayo" });
-      if (args[0] === "--curriculo" || args[0] === "--resume") return fazer({ tipo: "abrir", endereco: ctx.curriculo.url });
-      if (args[0] === "--email") return fazer({ tipo: "abrir", endereco: `mailto:${EMAIL}` });
-      if (args[0] === "--github") return fazer({ tipo: "abrir", endereco: GITHUB });
-      if (args[0] === "--linkedin") return fazer({ tipo: "abrir", endereco: LINKEDIN });
-      const pagina = `kayo-${args[0]}`;
-      if (args.length === 1 && ehPagina(pagina)) return fazer({ tipo: "manual", pagina });
-      if (args.every((a) => a.startsWith("--"))) return opcoes(args, ctx.idioma);
       return so(s.usoDoKayo);
     }
     case "man":

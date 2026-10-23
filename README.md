@@ -1,8 +1,28 @@
 # kalinauskas.dev
 
-Meu portfólio, escrito como uma página de manual do Unix: `man kayo`. Cada projeto é um subcomando com página própria, como no Git (`git log` é documentado em `git-log(1)`), e a navegação é a do `less`.
+[![CI](https://github.com/kayokalinauskas/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/kayokalinauskas/portfolio/actions/workflows/ci.yml)
 
-**Endereço:** https://kalinauskas.dev
+Meu portfólio, escrito como uma página de manual do Unix: `man kayo`. Cada projeto é um subcomando com página própria, como no Git (`git log` é documentado em `git-log(1)`), a navegação é a do `less` e o `q` abre um shell que executa os exemplos das páginas.
+
+**[kalinauskas.dev](https://kalinauskas.dev)** · em inglês: **[kalinauskas.dev/en](https://kalinauskas.dev/en)**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/captura-escuro.png">
+  <img alt="A página man kayo: o login do terminal, o cabeçalho KAYO(1), as seções NOME, SINOPSE, DESCRIÇÃO e EXEMPLOS, e a barra do less embaixo" src="docs/captura-claro.png">
+</picture>
+
+## A ideia
+
+- **Um manual de verdade, não uma fantasia de terminal.** Sem janela falsa, sem tela verde: as seções, a sinopse, as opções e o VEJA TAMBÉM seguem as convenções dos manuais (o HTML do mandoc), e cada título é o link da própria seção.
+- **Tudo funciona.** As letras da barra são teclas e botões ao mesmo tempo (`/` busca enquanto você digita, `t` troca o tema, `l` a língua); no shell do `q`, `kayo --sql` explica uma competência, `kayo ozamigos --web` abre o projeto, o Tab completa e o ↑ volta aos comandos anteriores.
+- **Legível para quem não usa terminal.** O texto é curto, numa coluna de 66 caracteres, e o currículo, o e-mail, o GitHub e o LinkedIn estão na sinopse, no topo da página.
+
+## Engenharia
+
+- **Estático e rápido.** As oito páginas (quatro em cada língua) são geradas no build; o conteúdo vem no HTML, sem esperar o JavaScript. No Lighthouse: 100 em desempenho, acessibilidade, boas práticas e SEO no computador, e 99 a 100 no celular, com CLS 0 (a fonte de reserva é uma mono com a mesma largura de caractere da IBM Plex Mono).
+- **Acessível.** Contraste acima de 4,5:1 nos dois temas, foco visível, botões de 44 px no toque, o nome acessível de cada tecla igual ao texto visível e o realce da busca pela CSS Custom Highlight API, sem mexer no HTML.
+- **Conteúdo como dado.** Todo o texto fica em `content/manual.ts`, tipado: a sinopse, a lista de projetos, o VEJA TAMBÉM, o Tab do prompt, o sitemap e uma imagem de prévia por página saem dele.
+- **Testado.** Testes de unidade (Vitest) conferem as duas línguas, a marcação e o shell; testes no navegador (Playwright) conferem as páginas no computador e num celular emulado. A CI roda tudo em menos de um minuto a cada push, e o Dependabot cuida das versões.
 
 ## Como se usa
 
@@ -41,6 +61,7 @@ npm run check      # tipos, lint (ESLint com as regras do Next), formatação (P
 npm run format     # formata tudo com o Prettier
 npm run build      # build de produção
 npm run test:e2e   # testes no navegador, contra o build (na primeira vez: npx playwright install chromium)
+npm run capturas   # refaz as capturas de tela deste README, a partir do build
 ```
 
 ### Testes

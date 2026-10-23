@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ancora } from "@/components/ancora";
-import { MANUAL, OPCOES, PAGINAS, PROJETOS, type Bloco, type Pagina } from "@/content/manual";
+import { interpretar } from "@/components/sessao/shell";
+import { CURRICULO, MANUAL, OPCOES, PAGINAS, PROJETOS, type Bloco, type Pagina } from "@/content/manual";
 
 // As duas línguas são escritas à mão: estes testes garantem que uma não fique para trás.
 
@@ -20,8 +21,14 @@ describe("conteúdo", () => {
     expect(forma(MANUAL.en[slug])).toEqual(forma(MANUAL.pt[slug]));
   });
 
-  it.each(PAGINAS)("%s tem os mesmos exemplos, abrindo os mesmos endereços, nas duas línguas", (slug) => {
-    const abre = (p: Pagina) => p.secoes.flatMap((s) => s.blocos).flatMap((b) => (b.tipo === "exemplo" ? [b.abre ?? null] : []));
+  it.each(PAGINAS)("%s tem os mesmos exemplos, abrindo os mesmos destinos, nas duas línguas", (slug) => {
+    // a mesma página ou o mesmo arquivo em cada língua contam como o mesmo destino
+    const destino = (d?: string) =>
+      d
+        ?.replace(/^\/en(\/|$)/, "/")
+        .replace("/resume.pdf", "/curriculo.pdf")
+        .replace("#options", "#opcoes") ?? null;
+    const abre = (p: Pagina) => p.secoes.flatMap((s) => s.blocos).flatMap((b) => (b.tipo === "exemplo" ? [destino(b.abre)] : []));
     expect(abre(MANUAL.en[slug])).toEqual(abre(MANUAL.pt[slug]));
   });
 
@@ -45,7 +52,9 @@ describe("conteúdo", () => {
 
   it("a página principal lista todos os projetos em COMANDOS e na sinopse", () => {
     for (const idioma of ["pt", "en"] as const) {
-      const [, sinopse, , comandos] = MANUAL[idioma].kayo.secoes;
+      const secoes = MANUAL[idioma].kayo.secoes;
+      const sinopse = secoes[1];
+      const comandos = secoes.find((s) => s.titulo === (idioma === "pt" ? "COMANDOS" : "COMMANDS"))!;
       expect(comandos.blocos.map((b) => (b.tipo === "item" ? b.rotulo : ""))).toEqual(PROJETOS.map((p) => `{${p}(1)}`));
       const linha = sinopse.blocos[0].tipo === "sinopse" ? sinopse.blocos[0].linhas[0] : "";
       for (const p of PROJETOS) expect(linha).toContain(`[${p.slice("kayo-".length)}](`);
@@ -109,11 +118,16 @@ describe("conteúdo", () => {
     }
   });
 
-  it("todo exemplo é um comando kayo, que o prompt sabe executar", () => {
+  it("todo exemplo é um comando que o prompt entende, sem erro", () => {
     for (const idioma of ["pt", "en"] as const) {
+      const ctx = { idioma, curriculo: CURRICULO[idioma], historico: [], agora: new Date() };
       for (const p of Object.values(MANUAL[idioma])) {
         for (const b of p.secoes.flatMap((s) => s.blocos)) {
-          if (b.tipo === "exemplo") expect(b.comando).toMatch(/^kayo( |$)/);
+          if (b.tipo !== "exemplo") continue;
+          const { linhas } = interpretar(b.comando, ctx);
+          expect(linhas, b.comando).not.toContainEqual(
+            expect.stringMatching(/não encontrad|not found|^uso:|^usage:|desconhecida|unknown/),
+          );
         }
       }
     }
