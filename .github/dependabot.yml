@@ -9,6 +9,15 @@ updates:
     groups:
       menores:
         update-types: [minor, patch]
+    ignore:
+      # os tipos do Node acompanham o Node em que o site roda (o 24, no .nvmrc e na
+      # Vercel): a versão 26 aceitaria recursos que não existem no 24
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      # o TypeScript 7 quebra o typescript-eslint (que ainda não o suporta); a troca de
+      # versão grande vem à mão, quando o lint e o Next a aceitarem
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
