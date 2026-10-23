@@ -61,6 +61,35 @@ function pintarBarraDoNavegador() {
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", fundo));
 }
 
+// "Fri Oct 23 15:49:12 GMT-3 2026", o formato do date no terminal
+function formatarData(data: Date) {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZoneName: "short",
+      year: "numeric",
+    })
+      .formatToParts(data)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.weekday} ${p.month} ${p.day.padStart(2)} ${p.hour}:${p.minute}:${p.second} ${p.timeZoneName} ${p.year}`;
+}
+
+// O uptime conta desde janeiro de 2015, o primeiro emprego na área (Hipertec Sistemas).
+const PRIMEIRO_DIA = new Date(2015, 0, 1);
+
+function formatarUptime(agora: Date) {
+  const dias = Math.floor((agora.getTime() - PRIMEIRO_DIA.getTime()) / 86_400_000);
+  const hora = agora.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return `${hora}  up ${dias} days, 1 user`;
+}
+
 // Os comandos já digitados no prompt, como o histórico de um shell: valem para a visita
 // inteira, também depois de abrir outra página do manual.
 const comandosAnteriores: string[] = [];
@@ -221,19 +250,31 @@ export default function Sessao({
     if (faixa) window.scrollTo({ top: window.scrollY + faixa.getBoundingClientRect().top - window.innerHeight / 3 });
   }, [busca]);
 
-  const buscar = (e: FormEvent) => {
-    e.preventDefault();
+  // A busca acende a cada letra, como o less com busca incremental; o Enter só confirma.
+  const pesquisar = (texto: string) => {
+    setTermo(texto);
     const manual = document.getElementById("manual");
     // uma busca vazia apaga a anterior, como no less
-    if (!manual || !termo.trim()) {
+    if (!manual || !texto.trim()) {
       realcar("busca", []);
       setBusca(null);
-      setModo("less");
       return;
     }
-    const faixas = procurar(manual, termo.trim());
+    const faixas = procurar(manual, texto.trim());
     realcar("busca", faixas);
     setBusca({ faixas, atual: 0 });
+  };
+
+  const buscar = (e: FormEvent) => {
+    e.preventDefault();
+    setModo("less");
+  };
+
+  // O esc desiste da busca: apaga o realce e volta a ler.
+  const teclaNaBusca = (e: TeclaDoReact<HTMLInputElement>) => {
+    if (e.key !== "Escape") return;
+    e.preventDefault();
+    pesquisar("");
     setModo("less");
   };
 
@@ -391,6 +432,23 @@ export default function Sessao({
         return;
       case "whoami":
         return responder("Kayo Kalinauskas");
+      case "pwd":
+        return responder("/Users/kayo");
+      case "date":
+        return responder(formatarData(new Date()));
+      case "uptime":
+        return responder(<span className={estilos.preservado}>{formatarUptime(new Date())}</span>);
+      case "history":
+        return responder(
+          ...comandosAnteriores.map((c, i) => (
+            <span key={i} className={estilos.preservado}>
+              {`${String(i + 1).padStart(5)}  ${c}`}
+            </span>
+          )),
+        );
+      case "sudo":
+        // a resposta de verdade do sudo para quem não está no sudoers
+        return responder("kayo is not in the sudoers file. This incident will be reported.");
       case "theme":
         trocarTema();
         return responder();
@@ -431,6 +489,10 @@ export default function Sessao({
     "mail",
     "theme",
     "whoami",
+    "pwd",
+    "date",
+    "uptime",
+    "history",
     `open ${curriculo.arquivo}`,
     "lang pt",
     "lang en",
@@ -582,12 +644,17 @@ export default function Sessao({
               id="busca"
               ref={buscaRef}
               value={termo}
-              onChange={(e) => setTermo(e.target.value)}
+              onChange={(e) => pesquisar(e.target.value)}
+              onKeyDown={teclaNaBusca}
               onBlur={() => setModo("less")}
               aria-label={s.padrao}
               autoComplete="off"
               spellCheck={false}
+              enterKeyHint="search"
             />
+            <span className={estilos.resultado} aria-live="polite">
+              {termo.trim() && (busca?.faixas.length ? `${busca.atual + 1}/${busca.faixas.length}` : s.semResultados)}
+            </span>
           </form>
         ) : modo === "prompt" ? (
           <p className={estilos.lessTexto}>

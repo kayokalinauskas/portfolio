@@ -281,6 +281,11 @@ h1.paragrafo {
   gap: 1ch;
 }
 
+/* a saída do history mantém o alinhamento dos números, como no terminal, e ainda quebra no celular */
+.preservado {
+  white-space: pre-wrap;
+}
+
 .ls {
   display: flex;
   flex-wrap: wrap;
