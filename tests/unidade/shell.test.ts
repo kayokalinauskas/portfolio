@@ -27,9 +27,12 @@ describe("interpretar", () => {
     expect(interpretar("kayo acelerato 4821", ctx()).linhas[0]).toMatch(/número do chamado/);
   });
 
-  it("kayo sozinho abre o manual; com o nome de um projeto sem exemplo, a página dele", () => {
+  it("kayo sozinho abre o manual, e kayo com o nome de um projeto abre a página dele", () => {
     expect(interpretar("kayo", ctx()).efeito).toEqual({ tipo: "manual", pagina: "kayo" });
-    expect(interpretar("kayo finalizadoras", ctx()).efeito).toEqual({ tipo: "manual", pagina: "kayo-finalizadoras" });
+    // o mesmo que o link do nome na sinopse: o site e a instalação são opções (--site, --instalar)
+    expect(interpretar("kayo ozamigos", ctx()).efeito).toEqual({ tipo: "manual", pagina: "kayo-ozamigos" });
+    expect(interpretar("kayo acelerato", ctx()).efeito).toEqual({ tipo: "manual", pagina: "kayo-acelerato" });
+    expect(interpretar("kayo ozamigos --site", ctx()).efeito).toMatchObject({ tipo: "abrir" });
     expect(interpretar("kayo xyz", ctx()).linhas[0]).toMatch(/^uso: kayo/);
   });
 

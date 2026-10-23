@@ -96,7 +96,7 @@ test.describe("o prompt", () => {
 
   test("o Tab completa e o Enter abre a página", async ({ page }) => {
     await abrir(page, "/");
-    await page.getByRole("button", { name: /prompt/ }).click();
+    await page.getByRole("button", { name: /shell/ }).click();
     const shell = page.locator("#shell");
     await expect(shell).toBeFocused();
     await shell.pressSequentially("man kayo-oz");
@@ -108,7 +108,7 @@ test.describe("o prompt", () => {
 
   test("kayo --sql mostra a explicação da opção, e ↑ volta aos comandos anteriores", async ({ page }) => {
     await abrir(page, "/");
-    await page.getByRole("button", { name: /prompt/ }).click();
+    await page.getByRole("button", { name: /shell/ }).click();
     const shell = page.locator("#shell");
     for (const comando of ["pwd", "kayo --sql"]) {
       await shell.fill(comando);

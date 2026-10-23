@@ -124,7 +124,12 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
       {
         titulo: "SINOPSE",
         blocos: [
-          { tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] },
+          {
+            tipo: "sinopse",
+            linhas: [
+              `**kayo ozamigos** [[--site](${OZAMIGOS_SITE}) | [--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`,
+            ],
+          },
         ],
       },
       {
@@ -142,7 +147,7 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
         blocos: [
           {
             tipo: "exemplo",
-            comando: "kayo ozamigos",
+            comando: "kayo ozamigos --site",
             texto: "Abre o site do Ozamigos, com as telas e o que o app faz.",
             abre: OZAMIGOS_SITE,
           },
@@ -232,7 +237,7 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
     slug: "kayo-finalizadoras",
     resumo:
       "Ferramenta interna da Bluesoft: mapeamentos em lote pela API REST do ERP, com as planilhas processadas num Web Worker.",
-    titulo: "Mapeamento de Finalizadoras pela API do ERP Bluesoft · kayo-finalizadoras(1)",
+    titulo: "Mapeamento de Finalizadoras: mapeamentos em lote no ERP Bluesoft · kayo-finalizadoras(1)",
     descricao: "Mapeamento de Finalizadoras: ferramenta interna da Bluesoft para mapeamentos em lote pela API REST do ERP.",
     secoes: [
       {
@@ -300,6 +305,7 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
           },
         ],
       },
+      { titulo: "SITE", blocos: [{ tipo: "texto", texto: `@{${FINALIZADORAS_WEB}}` }] },
       { titulo: "REPOSITÓRIO", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/bluesoft-subfinalizadora}` }] },
     ],
   },
@@ -307,7 +313,7 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
   "kayo-acelerato": {
     slug: "kayo-acelerato",
     resumo: "Extensão do Chrome (Manifest V3) usada no atendimento da Bluesoft, com mais de 60 usuários.",
-    titulo: "Acelerato Helper, extensão do Chrome · kayo-acelerato(1)",
+    titulo: "Acelerato Helper: extensão do Chrome para o atendimento · kayo-acelerato(1)",
     descricao:
       "Acelerato Helper: extensão do Chrome usada por mais de 60 pessoas no atendimento da Bluesoft. Abre um chamado pelo número e evita perder comentários.",
     secoes: [
@@ -315,7 +321,10 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
         titulo: "NOME",
         blocos: [{ tipo: "texto", texto: "**kayo-acelerato** - extensão do Chrome para o atendimento no Acelerato" }],
       },
-      { titulo: "SINOPSE", blocos: [{ tipo: "sinopse", linhas: ["**kayo acelerato** [~numero-do-chamado~]"] }] },
+      {
+        titulo: "SINOPSE",
+        blocos: [{ tipo: "sinopse", linhas: [`**kayo acelerato** [[--instalar](${WEB_STORE}) | ~numero-do-chamado~]`] }],
+      },
       {
         titulo: "DESCRIÇÃO",
         blocos: [
@@ -329,7 +338,12 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
       {
         titulo: "EXEMPLOS",
         blocos: [
-          { tipo: "exemplo", comando: "kayo acelerato", texto: "Instala a extensão pela Chrome Web Store.", abre: WEB_STORE },
+          {
+            tipo: "exemplo",
+            comando: "kayo acelerato --instalar",
+            texto: "Instala a extensão pela Chrome Web Store.",
+            abre: WEB_STORE,
+          },
           {
             tipo: "exemplo",
             comando: "kayo acelerato 4821",
@@ -356,11 +370,12 @@ const projetosPt: Record<Projeto, PaginaDeProjeto> = {
         blocos: [{ tipo: "texto", texto: "Manifest V3, JavaScript sem dependências, apenas com as APIs nativas do navegador." }],
       },
       {
+        titulo: "SITE",
+        blocos: [{ tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` }],
+      },
+      {
         titulo: "REPOSITÓRIO",
-        blocos: [
-          { tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` },
-          { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
-        ],
+        blocos: [{ tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` }],
       },
     ],
   },
@@ -370,7 +385,7 @@ const kayoPt: Pagina = {
   slug: "kayo",
   titulo: "Kayo Kalinauskas, desenvolvedor full stack · kayo(1)",
   descricao:
-    "Kayo Kalinauskas, desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP e integrações de APIs.",
+    "Kayo Kalinauskas, desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e mais de dez anos de experiência em ERP e integrações de APIs.",
   secoes: [
     { titulo: "NOME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, desenvolvedor full stack" }] },
     {
@@ -392,7 +407,7 @@ const kayoPt: Pagina = {
         {
           tipo: "texto",
           texto:
-            "Desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP, suporte e integrações de APIs. Atualmente acompanha projetos de integração na Bluesoft e desenvolve projetos próprios de ponta a ponta.",
+            "Desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e mais de dez anos de experiência em ERP, suporte e integrações de APIs. Atualmente acompanha projetos de integração na Bluesoft e desenvolve projetos próprios de ponta a ponta.",
         },
         { tipo: "texto", texto: "Português nativo, inglês avançado. Fuso de São Paulo (UTC-3)." },
       ],
@@ -463,7 +478,12 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
       {
         titulo: "SYNOPSIS",
         blocos: [
-          { tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] },
+          {
+            tipo: "sinopse",
+            linhas: [
+              `**kayo ozamigos** [[--site](${OZAMIGOS_SITE}) | [--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`,
+            ],
+          },
         ],
       },
       {
@@ -481,7 +501,7 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
         blocos: [
           {
             tipo: "exemplo",
-            comando: "kayo ozamigos",
+            comando: "kayo ozamigos --site",
             texto: "Opens the Ozamigos website, with screenshots and what the app does.",
             abre: OZAMIGOS_SITE,
           },
@@ -571,7 +591,7 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
     resumo: "Internal tool at Bluesoft: bulk mappings through the ERP REST API, with spreadsheets parsed in a Web Worker.",
-    titulo: "Payment method mapping through the Bluesoft ERP API · kayo-finalizadoras(1)",
+    titulo: "Payment method mapping: bulk mappings in the Bluesoft ERP · kayo-finalizadoras(1)",
     descricao: "Payment method mapping: an internal Bluesoft tool for bulk mappings through the ERP REST API.",
     secoes: [
       {
@@ -634,6 +654,7 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
           },
         ],
       },
+      { titulo: "WEBSITE", blocos: [{ tipo: "texto", texto: `@{${FINALIZADORAS_WEB}}` }] },
       { titulo: "REPOSITORY", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/bluesoft-subfinalizadora}` }] },
     ],
   },
@@ -641,7 +662,7 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
   "kayo-acelerato": {
     slug: "kayo-acelerato",
     resumo: "Chrome extension (Manifest V3) used by the Bluesoft support team, with 60+ users.",
-    titulo: "Acelerato Helper, a Chrome extension · kayo-acelerato(1)",
+    titulo: "Acelerato Helper: a Chrome extension for support work · kayo-acelerato(1)",
     descricao:
       "Acelerato Helper: a Chrome extension used by 60+ people on the Bluesoft support team. It opens a ticket by its number and prevents lost comments.",
     secoes: [
@@ -649,7 +670,10 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
         titulo: "NAME",
         blocos: [{ tipo: "texto", texto: "**kayo-acelerato** - Chrome extension for support work in Acelerato" }],
       },
-      { titulo: "SYNOPSIS", blocos: [{ tipo: "sinopse", linhas: ["**kayo acelerato** [~ticket-number~]"] }] },
+      {
+        titulo: "SYNOPSIS",
+        blocos: [{ tipo: "sinopse", linhas: [`**kayo acelerato** [[--install](${WEB_STORE}) | ~ticket-number~]`] }],
+      },
       {
         titulo: "DESCRIPTION",
         blocos: [
@@ -665,7 +689,7 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
         blocos: [
           {
             tipo: "exemplo",
-            comando: "kayo acelerato",
+            comando: "kayo acelerato --install",
             texto: "Installs the extension from the Chrome Web Store.",
             abre: WEB_STORE,
           },
@@ -695,11 +719,12 @@ const projetosEn: Record<Projeto, PaginaDeProjeto> = {
         blocos: [{ tipo: "texto", texto: "Manifest V3, dependency-free JavaScript, using only native browser APIs." }],
       },
       {
+        titulo: "WEBSITE",
+        blocos: [{ tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` }],
+      },
+      {
         titulo: "REPOSITORY",
-        blocos: [
-          { tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` },
-          { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
-        ],
+        blocos: [{ tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` }],
       },
     ],
   },
@@ -709,7 +734,7 @@ const kayoEn: Pagina = {
   slug: "kayo",
   titulo: "Kayo Kalinauskas, full stack developer · kayo(1)",
   descricao:
-    "Kayo Kalinauskas, full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems and API integrations.",
+    "Kayo Kalinauskas, full stack developer working with Java, Spring Boot, React and TypeScript, with over ten years in ERP systems and API integrations.",
   secoes: [
     { titulo: "NAME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, full stack developer" }] },
     {
@@ -731,7 +756,7 @@ const kayoEn: Pagina = {
         {
           tipo: "texto",
           texto:
-            "Full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems, support and API integrations. Currently supports integration projects at Bluesoft and builds personal projects end to end.",
+            "Full stack developer working with Java, Spring Boot, React and TypeScript, with over ten years of experience in ERP systems, support and API integrations. Currently supports integration projects at Bluesoft and builds personal projects end to end.",
         },
         { tipo: "texto", texto: "Native Portuguese, advanced English. São Paulo time zone (UTC-3)." },
       ],
@@ -802,7 +827,7 @@ export const SESSAO = {
       anterior: "anterior",
       tema: "tema",
       idioma: "English",
-      sair: "prompt",
+      sair: "shell",
       voltar: "voltar ao manual",
     },
     fim: "fim",
@@ -846,6 +871,7 @@ export const SESSAO = {
       ["theme", "troca o tema"],
       ["lang en", "muda para inglês"],
       ["kayo ozamigos --web", "roda um exemplo das páginas dos projetos"],
+      ["kayo --sql", "explica uma opção da seção OPÇÕES"],
       ["clear", "limpa a tela"],
       ["Tab", "completa o comando ou o nome da página"],
       ["history", "lista os comandos desta visita"],
@@ -908,6 +934,7 @@ export const SESSAO = {
       ["theme", "toggle the theme"],
       ["lang pt", "switch to Portuguese"],
       ["kayo ozamigos --web", "run an example from the project pages"],
+      ["kayo --sql", "explain an option from the OPTIONS section"],
       ["clear", "clear the screen"],
       ["Tab", "complete the command or page name"],
       ["history", "list the commands from this visit"],

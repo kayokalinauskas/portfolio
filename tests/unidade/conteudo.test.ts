@@ -91,6 +91,24 @@ describe("conteúdo", () => {
     for (const ref of textos.flatMap(referencias)) expect(PAGINAS).toContain(ref);
   });
 
+  it("todo projeto termina com SITE e REPOSITÓRIO, antes do VEJA TAMBÉM", () => {
+    for (const p of PROJETOS) {
+      expect(MANUAL.pt[p].secoes.slice(-3).map((s) => s.titulo)).toEqual(["SITE", "REPOSITÓRIO", "VEJA TAMBÉM"]);
+      expect(MANUAL.en[p].secoes.slice(-3).map((s) => s.titulo)).toEqual(["WEBSITE", "REPOSITORY", "SEE ALSO"]);
+    }
+  });
+
+  it("nenhum exemplo usa kayo <projeto> sozinho: esse comando é o da página do projeto", () => {
+    const sozinhos = PROJETOS.map((p) => `kayo ${p.slice("kayo-".length)}`);
+    for (const idioma of ["pt", "en"] as const) {
+      for (const p of Object.values(MANUAL[idioma])) {
+        for (const b of p.secoes.flatMap((s) => s.blocos)) {
+          if (b.tipo === "exemplo") expect(sozinhos).not.toContain(b.comando);
+        }
+      }
+    }
+  });
+
   it("todo exemplo é um comando kayo, que o prompt sabe executar", () => {
     for (const idioma of ["pt", "en"] as const) {
       for (const p of Object.values(MANUAL[idioma])) {
