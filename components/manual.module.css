@@ -1,0 +1,339 @@
+/* A página continua um manual de terminal, mas montado para ser lido: os títulos ficam numa
+   margem à esquerda (dá para achar uma seção só batendo o olho) e o texto numa coluna de
+   no máximo 66 colunas. Tudo se mede em ch, como no terminal. */
+
+.sessao {
+  --margem: 32px;
+  --titulos: 14ch;
+  --entre: 3ch;
+  --texto-max: 66ch;
+  --largura: calc(var(--titulos) + var(--entre) + var(--texto-max));
+  max-width: calc(var(--largura) + 2 * var(--margem));
+  margin: 0 auto;
+  padding: 56px var(--margem) 120px;
+}
+
+.pular {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  background: var(--barra-fundo);
+  color: var(--barra-texto);
+  padding: 2px 8px;
+}
+
+.pular:focus {
+  top: 8px;
+}
+
+.topo {
+  margin-bottom: 2.5em;
+  color: var(--suave);
+}
+
+.suave {
+  color: var(--suave);
+}
+
+.usuario {
+  color: var(--verde);
+}
+
+.diretorio {
+  color: var(--azul);
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--texto);
+  animation: piscar 1s steps(1) infinite;
+}
+
+@keyframes piscar {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* A digitação: enquanto ela roda, o comando completo e o manual esperam.
+   Se o JavaScript não rodar, a animação revela tudo sozinha em 2 s. */
+:global(html[data-intro]) .comandoCompleto,
+:global(html[data-intro]) .conteudo {
+  visibility: hidden;
+  animation: revelar 0s linear 2s forwards;
+}
+
+@keyframes revelar {
+  to {
+    visibility: visible;
+  }
+}
+
+/* ---------- a página de manual ---------- */
+
+.manual {
+  line-height: 1.7;
+}
+
+.cabecalho,
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 2ch;
+  color: var(--suave);
+}
+
+.rodape {
+  margin-top: 4em;
+}
+
+.secao {
+  display: grid;
+  grid-template-columns: var(--titulos) minmax(0, var(--texto-max));
+  column-gap: var(--entre);
+  margin-top: 2.6em;
+}
+
+.cabecalho + .secao {
+  margin-top: 3em;
+}
+
+.titulo {
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--forte);
+}
+
+.blocos > * + * {
+  margin-top: 1em;
+}
+
+h1.paragrafo {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* a segunda linha de uma sinopse longa recua até depois do nome do comando */
+.sinopse p {
+  padding-left: 5ch;
+  text-indent: -5ch;
+}
+
+/* uma opção nunca se parte no hífen ("[--" numa linha, "source]" na outra) */
+.sinopse a,
+.sinopse u {
+  white-space: nowrap;
+}
+
+.blocos > .item + .item {
+  margin-top: 1.1em;
+}
+
+.corpo {
+  margin-left: 4ch;
+}
+
+.campos {
+  display: grid;
+  column-gap: 0;
+}
+
+.campo {
+  display: contents;
+}
+
+.campo + .campo dt,
+.campo + .campo dd {
+  margin-top: 0.6em;
+}
+
+/* ---------- barra do less, ajuda e prompt ---------- */
+
+.less {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  background: var(--fundo);
+  padding: 0 var(--margem) 10px;
+  --margem: 32px;
+}
+
+.lessTexto,
+.busca {
+  max-width: calc(14ch + 3ch + 66ch);
+  margin: 0 auto;
+}
+
+.lessTexto {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 2ch;
+  background: var(--barra-fundo);
+  color: var(--barra-texto);
+  padding: 2px 1ch;
+}
+
+.lessTexto b {
+  color: inherit;
+}
+
+.resultado {
+  font-weight: 600;
+}
+
+.teclas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2ch;
+}
+
+.tecla {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tecla b {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tecla:hover {
+  color: var(--fundo);
+  background: var(--amarelo);
+}
+
+.busca {
+  display: flex;
+  gap: 0;
+  padding: 2px 1ch;
+}
+
+.busca input,
+.linhaDoPrompt input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: var(--forte);
+  background: transparent;
+  border: 0;
+  outline: none;
+  caret-color: var(--texto);
+}
+
+.painel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(1.7em + 14px);
+  z-index: 4;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--painel);
+  border-top: 1px solid var(--linha);
+  padding: 1em max(var(--margem), calc((100vw - 83ch) / 2));
+  --margem: 32px;
+}
+
+.ajudaTitulo {
+  margin-bottom: 0.8em;
+  font-weight: 600;
+  color: var(--forte);
+}
+
+.ajudaLinha {
+  display: grid;
+  grid-template-columns: 22ch minmax(0, 1fr);
+}
+
+.linhaDoPrompt {
+  display: flex;
+  gap: 1ch;
+}
+
+.ls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 3ch;
+}
+
+/* ---------- telas estreitas: os títulos voltam para cima do texto ---------- */
+
+@media (max-width: 860px) {
+  .secao {
+    display: block;
+    margin-top: 2.2em;
+  }
+
+  .titulo {
+    margin-bottom: 0.4em;
+  }
+
+  .blocos {
+    margin-left: 4ch;
+  }
+}
+
+@media (max-width: 640px) {
+  .sessao,
+  .less,
+  .painel {
+    --margem: 16px;
+  }
+
+  .sessao {
+    padding-top: 24px;
+  }
+
+  .blocos {
+    margin-left: 2ch;
+  }
+
+  .corpo {
+    margin-left: 2ch;
+  }
+
+  .campos {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .campos dd {
+    margin-left: 2ch;
+    margin-top: 0 !important;
+  }
+
+  .colecao,
+  .posicao {
+    display: none;
+  }
+
+  .lessTexto {
+    justify-content: flex-end;
+  }
+
+  .ajudaLinha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .rotuloDaTecla {
+    display: none;
+  }
+
+  .teclas {
+    gap: 0 3ch;
+  }
+}

@@ -1,46 +1,58 @@
-## Personal Portfolio
-This is my personal portfolio built in React, using Next.js, Sass and internationalization using react-i18next. <br>
-I designed this portfolio to showcase my skills, projects, and experiences in a visually appealing and user-friendly manner.
+# kalinauskas.dev
 
-![Portfolio Screenshot](https://i.imgur.com/Iem3aKK.png)
+Meu portfólio, escrito como uma página de manual do Unix: `man kayo`. Cada projeto é um subcomando com página própria, como no Git (`git log` é documentado em `git-log(1)`), e a navegação é a do `less`.
 
-## Getting Started
+**Endereço:** https://kalinauskas.dev
 
-First, run the development server:
+## Como se usa
+
+| Tecla | O que faz |
+|---|---|
+| `j` `k` `↓` `↑` | Rola uma linha |
+| `espaço` `b` | Rola uma tela |
+| `g` `G` | Vai ao começo e ao fim |
+| `/` | Busca na página (`n` e `N` para o próximo e o anterior) |
+| `t` | Troca o tema (Solarized claro ou Tomorrow Night) |
+| `l` | Troca o idioma (português em `/`, inglês em `/en`) |
+| `h` | Mostra a ajuda |
+| `q` | Abre um prompt: `help`, `ls`, `man kayo-ozamigos`, `open curriculo.pdf`, `mail`, `theme`, `lang en` |
+
+A barra de baixo mostra as teclas com o que cada uma faz, e cada uma é um botão, para quem usa mouse ou celular.
+
+## Tecnologias
+
+- Next.js 16 (App Router, tudo estático) e React 19
+- TypeScript
+- CSS Modules; o layout é medido em `ch`, como as colunas de um terminal
+- IBM Plex Mono pelo `next/font`
+- Busca com a CSS Custom Highlight API, sem mexer no HTML
+- Imagem de prévia (Open Graph) gerada no build com `next/og`
+- Vercel Analytics
+
+## Como rodar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+npm run build      # build de produção
+npm run typecheck  # só os tipos
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Onde mexer
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+| O quê | Onde |
+|---|---|
+| Todo o texto, das quatro páginas e nas duas línguas | `content/manual.ts` (a marcação está explicada no topo do arquivo) |
+| Como uma página de manual é desenhada | `components/Manual.tsx` e `components/manual.module.css` |
+| A barra do `less`, as teclas, a busca e o prompt | `components/Sessao.tsx` |
+| Cores dos dois temas | `app/globals.css` |
+| Currículo | `public/curriculo.pdf` e `public/resume.pdf` |
 
-## Learn More
+Cada idioma tem o seu layout raiz (`app/(pt)` e `app/(en)`), para o `<html lang>` sair certo. Por isso o 404 ("No manual entry for…") fica em `app/global-not-found.tsx`.
 
-To learn more about Next.js, take a look at the following resources:
+## Licença
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-## License
-
-This project is open-source and available under the [MIT License](LICENSE). You are free to use, modify, and distribute this project for your purposes. 
-
-If you choose to use this project, I kindly request that you provide attribution by linking back to the original repository, and mantain the original credits in the footer.
+MIT. A fonte em `assets/fontes` segue a SIL Open Font License (`assets/fontes/OFL.txt`).

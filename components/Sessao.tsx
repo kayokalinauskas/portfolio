@@ -1,0 +1,487 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { caminho, EMAIL, PAGINAS, SESSAO, type Idioma, type Slug } from "@/content/manual";
+import estilos from "./manual.module.css";
+
+type Modo = "less" | "busca" | "ajuda" | "prompt";
+type Saida = { comando: string; linhas: ReactNode[] };
+
+
+// "Thu Oct 22 09:14:07", o formato do macOS
+function formatarLogin(data: Date) {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(data)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.weekday} ${p.month} ${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
+
+function trocarTema() {
+  const raiz = document.documentElement;
+  const escuroAgora = raiz.dataset.theme
+    ? raiz.dataset.theme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  raiz.dataset.theme = escuroAgora ? "light" : "dark";
+  try {
+    localStorage.setItem("tema", escuroAgora ? "claro" : "escuro");
+  } catch {
+    // sem armazenamento (janela privada): vale até recarregar
+  }
+}
+
+type Realce = { set(nome: string, valor: unknown): void; delete(nome: string): void };
+function registroDeRealces(): Realce | null {
+  const css = globalThis.CSS as unknown as { highlights?: Realce } | undefined;
+  return css?.highlights && "Highlight" in globalThis ? css.highlights : null;
+}
+function realcar(nome: string, faixas: Range[]) {
+  const registro = registroDeRealces();
+  if (!registro) return;
+  const Highlight = (globalThis as unknown as { Highlight: new (...r: Range[]) => unknown }).Highlight;
+  if (faixas.length) registro.set(nome, new Highlight(...faixas));
+  else registro.delete(nome);
+}
+
+function procurar(raiz: HTMLElement, termo: string) {
+  const faixas: Range[] = [];
+  const alvo = termo.toLocaleLowerCase();
+  const andar = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  for (let no = andar.nextNode(); no; no = andar.nextNode()) {
+    const texto = (no.textContent ?? "").toLocaleLowerCase();
+    let i = texto.indexOf(alvo);
+    while (i !== -1) {
+      const faixa = document.createRange();
+      faixa.setStart(no, i);
+      faixa.setEnd(no, i + alvo.length);
+      faixas.push(faixa);
+      i = texto.indexOf(alvo, i + alvo.length);
+    }
+  }
+  return faixas;
+}
+
+export default function Sessao({
+  idioma,
+  slug,
+  curriculo,
+  children,
+}: {
+  idioma: Idioma;
+  slug: Slug;
+  curriculo: { arquivo: string; url: string };
+  children: ReactNode;
+}) {
+  const s = SESSAO[idioma];
+  const outro: Idioma = idioma === "pt" ? "en" : "pt";
+  const router = useRouter();
+
+  const [login, setLogin] = useState("");
+  const [digitado, setDigitado] = useState<string | null>(null);
+  const [modo, setModo] = useState<Modo>("less");
+  const [posicao, setPosicao] = useState({ linha: 1, total: 1, porcento: 0, fim: false });
+  const [termo, setTermo] = useState("");
+  const [busca, setBusca] = useState<{ faixas: Range[]; atual: number } | null>(null);
+  const [historico, setHistorico] = useState<Saida[]>([]);
+  const [entrada, setEntrada] = useState("");
+
+  const entradaRef = useRef<HTMLInputElement>(null);
+  const buscaRef = useRef<HTMLInputElement>(null);
+  const fimDoPrompt = useRef<HTMLDivElement>(null);
+
+  const alturaDaLinha = () => {
+    const manual = document.getElementById("manual");
+    return manual ? parseFloat(getComputedStyle(manual).lineHeight) || 24 : 24;
+  };
+
+  // Último login de verdade: a visita anterior deste navegador.
+  useEffect(() => {
+    let anterior: Date | null = null;
+    try {
+      const guardado = localStorage.getItem("ultimo-acesso");
+      if (guardado) anterior = new Date(guardado);
+      localStorage.setItem("ultimo-acesso", new Date().toISOString());
+    } catch {
+      // sem armazenamento: mostra a hora de agora
+    }
+    setLogin(formatarLogin(anterior && !isNaN(+anterior) ? anterior : new Date()));
+  }, []);
+
+  // A digitação de "man ..." só na primeira página da visita.
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const encerrar = () => {
+      delete raiz.dataset.intro;
+      setDigitado(null);
+      try {
+        sessionStorage.setItem("intro", "1");
+      } catch {}
+    };
+    if (!raiz.dataset.intro) {
+      encerrar();
+      return;
+    }
+    const comando = `man ${slug}`;
+    let i = 0;
+    setDigitado("");
+    const relogio = window.setInterval(() => {
+      i += 1;
+      setDigitado(comando.slice(0, i));
+      if (i >= comando.length) {
+        window.clearInterval(relogio);
+        window.setTimeout(encerrar, 320);
+      }
+    }, 70);
+    const pular = () => {
+      window.clearInterval(relogio);
+      encerrar();
+    };
+    window.addEventListener("keydown", pular, { once: true });
+    window.addEventListener("pointerdown", pular, { once: true });
+    return () => {
+      window.clearInterval(relogio);
+      window.removeEventListener("keydown", pular);
+      window.removeEventListener("pointerdown", pular);
+    };
+  }, [slug]);
+
+  // A posição na barra do less acompanha a rolagem.
+  useEffect(() => {
+    const medir = () => {
+      const lh = alturaDaLinha();
+      const altura = document.documentElement.scrollHeight;
+      const maximo = altura - window.innerHeight;
+      const linha = Math.floor(window.scrollY / lh) + 1;
+      const total = Math.max(linha, Math.ceil(altura / lh));
+      const fim = maximo <= 2 || window.scrollY >= maximo - 2;
+      setPosicao({ linha, total, porcento: maximo > 0 ? Math.round((window.scrollY / maximo) * 100) : 100, fim });
+    };
+    medir();
+    window.addEventListener("scroll", medir, { passive: true });
+    window.addEventListener("resize", medir);
+    return () => {
+      window.removeEventListener("scroll", medir);
+      window.removeEventListener("resize", medir);
+    };
+  }, []);
+
+  const irPara = useCallback((faixa: Range) => {
+    const caixa = faixa.getBoundingClientRect();
+    window.scrollTo({ top: window.scrollY + caixa.top - window.innerHeight / 3 });
+  }, []);
+
+  const marcarAtual = useCallback(
+    (faixas: Range[], atual: number) => {
+      realcar("busca-atual", faixas[atual] ? [faixas[atual]] : []);
+      if (faixas[atual]) irPara(faixas[atual]);
+    },
+    [irPara],
+  );
+
+  const buscar = (e: FormEvent) => {
+    e.preventDefault();
+    const manual = document.getElementById("manual");
+    if (!manual || !termo.trim()) {
+      setModo("less");
+      return;
+    }
+    const faixas = procurar(manual, termo.trim());
+    realcar("busca", faixas);
+    setBusca({ faixas, atual: 0 });
+    marcarAtual(faixas, 0);
+    setModo("less");
+  };
+
+  const proximo = useCallback(
+    (passo: number) => {
+      setBusca((b) => {
+        if (!b || !b.faixas.length) return b;
+        const atual = (b.atual + passo + b.faixas.length) % b.faixas.length;
+        marcarAtual(b.faixas, atual);
+        return { ...b, atual };
+      });
+    },
+    [marcarAtual],
+  );
+
+  const abrirBusca = useCallback(() => {
+    setTermo("");
+    setModo("busca");
+    window.setTimeout(() => buscaRef.current?.focus(), 0);
+  }, []);
+
+  const abrirPrompt = useCallback(() => {
+    setModo("prompt");
+    window.setTimeout(() => entradaRef.current?.focus(), 0);
+  }, []);
+
+  // As teclas do less.
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // O esc vale até com o cursor no prompt: é o jeito de voltar ao manual.
+      if (e.key === "Escape" && modo === "prompt") {
+        e.preventDefault();
+        setModo("less");
+        return;
+      }
+      const alvo = e.target instanceof Element ? e.target : document.body;
+      if (alvo.closest("input, textarea, select, [contenteditable]")) return;
+      if (document.documentElement.dataset.intro) return;
+      const lh = alturaDaLinha();
+      const janela = window.innerHeight - lh * 3;
+      if (modo === "ajuda") {
+        if (["q", "Q", "h", "H", "Escape"].includes(e.key)) {
+          e.preventDefault();
+          setModo("less");
+        }
+        return;
+      }
+      if (modo !== "less") {
+        if (e.key === "Escape") setModo("less");
+        return;
+      }
+      const acoes: Record<string, () => void> = {
+        j: () => window.scrollBy({ top: lh }),
+        ArrowDown: () => window.scrollBy({ top: lh }),
+        Enter: () => window.scrollBy({ top: lh }),
+        k: () => window.scrollBy({ top: -lh }),
+        ArrowUp: () => window.scrollBy({ top: -lh }),
+        " ": () => window.scrollBy({ top: janela }),
+        f: () => window.scrollBy({ top: janela }),
+        b: () => window.scrollBy({ top: -janela }),
+        g: () => window.scrollTo({ top: 0 }),
+        "<": () => window.scrollTo({ top: 0 }),
+        G: () => window.scrollTo({ top: document.documentElement.scrollHeight }),
+        ">": () => window.scrollTo({ top: document.documentElement.scrollHeight }),
+        "/": abrirBusca,
+        n: () => proximo(1),
+        N: () => proximo(-1),
+        t: trocarTema,
+        l: () => router.push(caminho(outro, slug)),
+        h: () => setModo("ajuda"),
+        H: () => setModo("ajuda"),
+        q: abrirPrompt,
+        Q: abrirPrompt,
+      };
+      const acao = acoes[e.key];
+      if (!acao) return;
+      if (e.key === "Enter" && alvo.closest("a, button")) return;
+      e.preventDefault();
+      acao();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [modo, outro, slug, router, proximo, abrirBusca, abrirPrompt]);
+
+  useEffect(() => {
+    fimDoPrompt.current?.scrollIntoView({ block: "nearest" });
+  }, [historico]);
+
+  // Os comandos do prompt que aparece depois do q.
+  const executar = (e: FormEvent) => {
+    e.preventDefault();
+    const comando = entrada.trim();
+    setEntrada("");
+    if (!comando) return;
+    const [nome, ...args] = comando.split(/\s+/);
+    const responder = (...linhas: ReactNode[]) => setHistorico((h) => [...h, { comando, linhas }]);
+    const paginas = PAGINAS as readonly string[];
+
+    switch (nome) {
+      case "man": {
+        const alvo = args[0];
+        if (!alvo) return responder(s.qualPagina);
+        if (!paginas.includes(alvo)) return responder(s.semManual(alvo));
+        setHistorico([]);
+        setModo("less");
+        if (alvo === slug) window.scrollTo({ top: 0 });
+        else router.push(caminho(idioma, alvo));
+        return;
+      }
+      case "ls":
+        return responder(
+          <span className={estilos.ls}>
+            {[...paginas.map((p) => `${p}.1`), curriculo.arquivo].map((p) => (
+              <span key={p}>{p}</span>
+            ))}
+          </span>,
+        );
+      case "open":
+      case "xdg-open":
+        if (args[0] === curriculo.arquivo || args[0] === `~/${curriculo.arquivo}`) {
+          responder();
+          window.location.href = curriculo.url;
+          return;
+        }
+        return responder(s.semArquivo(args[0] ?? ""));
+      case "mail":
+      case "email":
+        responder();
+        window.location.href = `mailto:${EMAIL}`;
+        return;
+      case "whoami":
+        return responder("Kayo Kalinauskas");
+      case "theme":
+        trocarTema();
+        return responder();
+      case "lang":
+        if (args[0] === "pt" || args[0] === "en") {
+          router.push(caminho(args[0], slug));
+          return responder();
+        }
+        return responder(s.usoDoLang);
+      case "clear":
+        setHistorico([]);
+        return;
+      case "help":
+        return responder(
+          ...s.ajudaPrompt.map(([c, d]) => (
+            <span key={c} className={estilos.ajudaLinha}>
+              <b>{c}</b>
+              <span>{d}</span>
+            </span>
+          )),
+        );
+      case "exit":
+      case "logout":
+        setHistorico([]);
+        setModo("less");
+        return;
+      default:
+        return responder(s.naoEncontrado(nome));
+    }
+  };
+
+  const resultadoDaBusca = busca
+    ? busca.faixas.length
+      ? `${s.resultados(busca.faixas.length)} (${busca.atual + 1}/${busca.faixas.length})`
+      : s.semResultados
+    : null;
+
+  // a tecla e o que ela faz, num botão só: no celular, é o jeito de usar o manual
+  const Tecla = ({ k, acao, rotulo }: { k: string; acao: () => void; rotulo: string }) => (
+    <button type="button" className={estilos.tecla} onClick={acao} aria-label={rotulo}>
+      <b>{k}</b>
+      <span className={estilos.rotuloDaTecla}> {rotulo}</span>
+    </button>
+  );
+
+  return (
+    <div className={estilos.sessao}>
+      <a href="#manual" className={estilos.pular}>
+        {s.pularIntro}
+      </a>
+
+      <div className={estilos.topo} aria-hidden="true">
+        <p className={estilos.suave}>Last login: {login || " "} on ttys001</p>
+        <p>
+          <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
+          <span className={estilos.comandoCompleto}>man {slug}</span>
+          {digitado !== null && <span>{digitado}</span>}
+          {digitado !== null && <span className={estilos.cursor} />}
+        </p>
+      </div>
+
+      <div className={estilos.conteudo}>{children}</div>
+
+      {modo === "ajuda" && (
+        <div className={estilos.painel} role="dialog" aria-label={s.ajuda.titulo}>
+          <p className={estilos.ajudaTitulo}>{s.ajuda.titulo}</p>
+          {s.ajuda.linhas.map(([k, d]) => (
+            <p key={k} className={estilos.ajudaLinha}>
+              <b>{k}</b>
+              <span>{d}</span>
+            </p>
+          ))}
+          <p className={estilos.suave}>{s.ajuda.rodape}</p>
+        </div>
+      )}
+
+      {modo === "prompt" && (
+        <div className={estilos.painel} role="region" aria-label="shell">
+          {historico.map((saida, i) => (
+            <div key={i}>
+              <p>
+                <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
+                {saida.comando}
+              </p>
+              {saida.linhas.map((linha, j) => (
+                <p key={j}>{linha}</p>
+              ))}
+            </div>
+          ))}
+          {historico.length === 0 && (
+            <p className={estilos.suave}>
+              {idioma === "pt" ? "Digite help para ver os comandos, ou man kayo para voltar." : "Type help to see the commands, or man kayo to go back."}
+            </p>
+          )}
+          <form onSubmit={executar} className={estilos.linhaDoPrompt}>
+            <label htmlFor="shell">
+              <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %
+            </label>
+            <input
+              id="shell"
+              ref={entradaRef}
+              value={entrada}
+              onChange={(e) => setEntrada(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+            />
+          </form>
+          <div ref={fimDoPrompt} />
+        </div>
+      )}
+
+      <div className={estilos.less}>
+        {modo === "busca" ? (
+          <form onSubmit={buscar} className={estilos.busca}>
+            <label htmlFor="busca">/</label>
+            <input
+              id="busca"
+              ref={buscaRef}
+              value={termo}
+              onChange={(e) => setTermo(e.target.value)}
+              onBlur={() => setModo("less")}
+              aria-label={s.padrao}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </form>
+        ) : modo === "prompt" ? (
+          <p className={estilos.lessTexto}>
+            <span className={estilos.posicao}>zsh</span>
+            <span className={estilos.teclas}>
+              <Tecla k="esc" acao={() => setModo("less")} rotulo={s.teclas.voltar} />
+            </span>
+          </p>
+        ) : (
+          <p className={estilos.lessTexto}>
+            <span className={estilos.posicao}>
+              {slug}(1) {posicao.fim ? `(${s.fim})` : `${posicao.porcento}%`}
+              {resultadoDaBusca && <span className={estilos.resultado}> {resultadoDaBusca}</span>}
+            </span>
+            <span className={estilos.teclas}>
+              <Tecla k="h" acao={() => setModo("ajuda")} rotulo={s.teclas.ajuda} />
+              <Tecla k="/" acao={abrirBusca} rotulo={s.teclas.buscar} />
+              <Tecla k="t" acao={trocarTema} rotulo={s.teclas.tema} />
+              <Tecla k="l" acao={() => router.push(caminho(outro, slug))} rotulo={s.teclas.idioma} />
+              <Tecla k="q" acao={abrirPrompt} rotulo={s.teclas.sair} />
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
