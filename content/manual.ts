@@ -44,7 +44,7 @@ export const CURRICULO: Record<Idioma, { arquivo: string; url: string }> = {
 const pt: Record<Slug, Pagina> = {
   kayo: {
     slug: "kayo",
-    titulo: "kayo(1) · Kayo Kalinauskas, desenvolvedor full stack",
+    titulo: "Kayo Kalinauskas, desenvolvedor full stack · kayo(1)",
     descricao:
       "Kayo Kalinauskas, desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP e integrações de APIs.",
     secoes: [
@@ -165,7 +165,7 @@ const pt: Record<Slug, Pagina> = {
 
   "kayo-ozamigos": {
     slug: "kayo-ozamigos",
-    titulo: "kayo-ozamigos(1) · Ozamigos, transmissão de tela entre amigos",
+    titulo: "Ozamigos: transmissão de tela entre amigos · kayo-ozamigos(1)",
     descricao:
       "Ozamigos: transmissão de tela de jogos entre amigos, com voz e chat. WebRTC peer-to-peer, Spring Boot, React, Electron e captura nativa em C#.",
     secoes: [
@@ -259,7 +259,7 @@ const pt: Record<Slug, Pagina> = {
 
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
-    titulo: "kayo-finalizadoras(1) · Mapeamento de Finalizadoras",
+    titulo: "Mapeamento de Finalizadoras pela API do ERP Bluesoft · kayo-finalizadoras(1)",
     descricao: "Mapeamento de Finalizadoras: ferramenta interna da Bluesoft para mapeamentos em lote pela API REST do ERP.",
     secoes: [
       {
@@ -310,8 +310,9 @@ const pt: Record<Slug, Pagina> = {
 
   "kayo-acelerato": {
     slug: "kayo-acelerato",
-    titulo: "kayo-acelerato(1) · Acelerato Helper",
-    descricao: "Acelerato Helper: extensão do Chrome usada no atendimento da Bluesoft, com mais de 60 usuários.",
+    titulo: "Acelerato Helper, extensão do Chrome · kayo-acelerato(1)",
+    descricao:
+      "Acelerato Helper: extensão do Chrome usada por mais de 60 pessoas no atendimento da Bluesoft. Abre um chamado pelo número e evita perder comentários.",
     secoes: [
       {
         titulo: "NOME",
@@ -361,7 +362,7 @@ const pt: Record<Slug, Pagina> = {
 const en: Record<Slug, Pagina> = {
   kayo: {
     slug: "kayo",
-    titulo: "kayo(1) · Kayo Kalinauskas, full stack developer",
+    titulo: "Kayo Kalinauskas, full stack developer · kayo(1)",
     descricao:
       "Kayo Kalinauskas, full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems and API integrations.",
     secoes: [
@@ -477,7 +478,7 @@ const en: Record<Slug, Pagina> = {
   },
   "kayo-ozamigos": {
     slug: "kayo-ozamigos",
-    titulo: "kayo-ozamigos(1) · Ozamigos, screen sharing between friends",
+    titulo: "Ozamigos: screen sharing between friends · kayo-ozamigos(1)",
     descricao:
       "Ozamigos: game screen sharing between friends, with voice and chat. Peer-to-peer WebRTC, Spring Boot, React, Electron and native capture in C#.",
     secoes: [
@@ -571,7 +572,7 @@ const en: Record<Slug, Pagina> = {
 
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
-    titulo: "kayo-finalizadoras(1) · Payment method mapping",
+    titulo: "Payment method mapping through the Bluesoft ERP API · kayo-finalizadoras(1)",
     descricao: "Payment method mapping: an internal Bluesoft tool for bulk mappings through the ERP REST API.",
     secoes: [
       {
@@ -620,8 +621,9 @@ const en: Record<Slug, Pagina> = {
 
   "kayo-acelerato": {
     slug: "kayo-acelerato",
-    titulo: "kayo-acelerato(1) · Acelerato Helper",
-    descricao: "Acelerato Helper: a Chrome extension used by the Bluesoft support team, with 60+ users.",
+    titulo: "Acelerato Helper, a Chrome extension · kayo-acelerato(1)",
+    descricao:
+      "Acelerato Helper: a Chrome extension used by 60+ people on the Bluesoft support team. It opens a ticket by its number and prevents lost comments.",
     secoes: [
       {
         titulo: "NAME",
