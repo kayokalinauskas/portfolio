@@ -381,7 +381,7 @@ const kayoPt: Pagina = {
           linhas: [
             sinopseDosProjetos("pt"),
             sinopseDasOpcoes(OPCOES.pt, "opcoes"),
-            `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL})}`,
+            `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL}) | [--github](${GITHUB}) | [--linkedin](${LINKEDIN})}`,
           ],
         },
       ],
@@ -720,7 +720,7 @@ const kayoEn: Pagina = {
           linhas: [
             sinopseDosProjetos("en"),
             sinopseDasOpcoes(OPCOES.en, "options"),
-            `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL})}`,
+            `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL}) | [--github](${GITHUB}) | [--linkedin](${LINKEDIN})}`,
           ],
         },
       ],
@@ -816,7 +816,8 @@ export const SESSAO = {
     qualPagina: "Qual página do manual você quer?",
     semArquivo: (a: string) => `O arquivo ${a} não existe.`,
     usoDoLang: "uso: lang pt|en",
-    usoDoKayo: "uso: kayo {ozamigos | finalizadoras | acelerato}, kayo [opções] ou kayo {--curriculo | --email}",
+    usoDoKayo:
+      "uso: kayo {ozamigos | finalizadoras | acelerato}, kayo [opções] ou kayo {--curriculo | --email | --github | --linkedin}",
     opcaoDesconhecida: (o: string) => `kayo: opção desconhecida: ${o}`,
     ajuda: {
       titulo: "RESUMO DOS COMANDOS DO LESS",
@@ -877,7 +878,8 @@ export const SESSAO = {
     qualPagina: "What manual page do you want?",
     semArquivo: (a: string) => `The file ${a} does not exist.`,
     usoDoLang: "usage: lang pt|en",
-    usoDoKayo: "usage: kayo {ozamigos | finalizadoras | acelerato}, kayo [options] or kayo {--resume | --email}",
+    usoDoKayo:
+      "usage: kayo {ozamigos | finalizadoras | acelerato}, kayo [options] or kayo {--resume | --email | --github | --linkedin}",
     opcaoDesconhecida: (o: string) => `kayo: unknown option: ${o}`,
     ajuda: {
       titulo: "SUMMARY OF LESS COMMANDS",

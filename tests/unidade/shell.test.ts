@@ -41,6 +41,14 @@ describe("interpretar", () => {
     });
   });
 
+  it("o GitHub e o LinkedIn abrem pelo prompt, como na sinopse", () => {
+    expect(interpretar("kayo --github", ctx()).efeito).toEqual({ tipo: "abrir", endereco: "https://github.com/kayokalinauskas" });
+    expect(interpretar("kayo --linkedin", ctx()).efeito).toEqual({
+      tipo: "abrir",
+      endereco: "https://www.linkedin.com/in/kayokalinauskas",
+    });
+  });
+
   it("espaços a mais não mudam o comando", () => {
     expect(interpretar("  man   kayo  ", ctx()).efeito).toEqual({ tipo: "manual", pagina: "kayo" });
   });

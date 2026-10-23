@@ -1,7 +1,19 @@
 // O shell do prompt que abre com o q, sem React e sem DOM: recebe o comando e diz o que
 // mostrar e o que fazer. A Sessao aplica a resposta; os testes conferem as respostas.
 
-import { EMAIL, MANUAL, OPCOES, PAGINAS, PROJETOS, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
+import {
+  EMAIL,
+  GITHUB,
+  LINKEDIN,
+  MANUAL,
+  OPCOES,
+  PAGINAS,
+  PROJETOS,
+  SESSAO,
+  type Bloco,
+  type Idioma,
+  type Slug,
+} from "@/content/manual";
 import { formatarData, formatarUptime } from "./formatos";
 
 // Uma linha da saída: texto, uma lista em colunas (ls), uma tabela (help) ou um texto que
@@ -64,6 +76,8 @@ export function interpretar(entrada: string, ctx: Contexto): Resposta {
       if (!args.length) return fazer({ tipo: "manual", pagina: "kayo" });
       if (args[0] === "--curriculo" || args[0] === "--resume") return fazer({ tipo: "abrir", endereco: ctx.curriculo.url });
       if (args[0] === "--email") return fazer({ tipo: "abrir", endereco: `mailto:${EMAIL}` });
+      if (args[0] === "--github") return fazer({ tipo: "abrir", endereco: GITHUB });
+      if (args[0] === "--linkedin") return fazer({ tipo: "abrir", endereco: LINKEDIN });
       const pagina = `kayo-${args[0]}`;
       if (args.length === 1 && ehPagina(pagina)) return fazer({ tipo: "manual", pagina });
       if (args.every((a) => a.startsWith("--"))) return opcoes(args, ctx.idioma);
@@ -135,6 +149,8 @@ export function completaveis(idioma: Idioma, arquivoDoCurriculo: string) {
       "kayo",
       `kayo ${idioma === "pt" ? "--curriculo" : "--resume"}`,
       "kayo --email",
+      "kayo --github",
+      "kayo --linkedin",
       ...PROJETOS.map((p) => `kayo ${p.slice("kayo-".length)}`),
       ...OPCOES[idioma].flatMap((o) => o.flags.map((f) => `kayo ${f}`)),
       ...exemplosDe(idioma).map((x) => x.comando),
