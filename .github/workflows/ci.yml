@@ -26,8 +26,17 @@ jobs:
       # tipos, lint, formatação e testes de unidade
       - run: npm run check
       - run: npm run build
-      # os testes no navegador rodam contra o build de produção
-      - run: npx playwright install --with-deps chromium
+      # Os testes no navegador rodam contra o build de produção. Basta o Chromium sem
+      # interface (--only-shell): o Ubuntu da CI já tem as bibliotecas dele, e o
+      # --with-deps (que as instala de novo pelo apt) levava quase 3 minutos. O navegador
+      # fica em cache, pela versão do Playwright.
+      - id: playwright
+        run: echo "versao=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.versao }}
+      - run: npx playwright install chromium --only-shell
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
         if: failure()

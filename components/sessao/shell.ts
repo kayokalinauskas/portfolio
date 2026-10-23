@@ -1,7 +1,7 @@
 // O shell do prompt que abre com o q, sem React e sem DOM: recebe o comando e diz o que
 // mostrar e o que fazer. A Sessao aplica a resposta; os testes conferem as respostas.
 
-import { EMAIL, MANUAL, PAGINAS, PROJETOS, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
+import { EMAIL, MANUAL, OPCOES, PAGINAS, PROJETOS, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
 import { formatarData, formatarUptime } from "./formatos";
 
 // Uma linha da saída: texto, uma lista em colunas (ls), uma tabela (help) ou um texto que
@@ -41,6 +41,16 @@ const ehPagina = (nome: string): nome is Slug => (PAGINAS as readonly string[]).
 const so = (...linhas: Linha[]): Resposta => ({ linhas });
 const fazer = (efeito: Efeito): Resposta => ({ linhas: [], efeito });
 
+// "kayo --java --sql": a explicação de cada opção, como na seção OPÇÕES. Duas opções do
+// mesmo item (--java e --spring-boot) mostram o texto uma vez só; uma que não existe é
+// recusada, como num programa de verdade, sem inventar nada.
+function opcoes(flags: string[], idioma: Idioma): Resposta {
+  const s = SESSAO[idioma];
+  const desconhecida = flags.find((f) => !OPCOES[idioma].some((o) => o.flags.includes(f)));
+  if (desconhecida) return so(s.opcaoDesconhecida(desconhecida), s.usoDoKayo);
+  return so(...OPCOES[idioma].filter((o) => o.flags.some((f) => flags.includes(f))).map((o) => o.texto));
+}
+
 export function interpretar(entrada: string, ctx: Contexto): Resposta {
   const s = SESSAO[ctx.idioma];
   const comando = entrada.trim().replace(/\s+/g, " ");
@@ -56,6 +66,7 @@ export function interpretar(entrada: string, ctx: Contexto): Resposta {
       if (args[0] === "--email") return fazer({ tipo: "abrir", endereco: `mailto:${EMAIL}` });
       const pagina = `kayo-${args[0]}`;
       if (args.length === 1 && ehPagina(pagina)) return fazer({ tipo: "manual", pagina });
+      if (args.every((a) => a.startsWith("--"))) return opcoes(args, ctx.idioma);
       return so(s.usoDoKayo);
     }
     case "man":
@@ -125,6 +136,7 @@ export function completaveis(idioma: Idioma, arquivoDoCurriculo: string) {
       `kayo ${idioma === "pt" ? "--curriculo" : "--resume"}`,
       "kayo --email",
       ...PROJETOS.map((p) => `kayo ${p.slice("kayo-".length)}`),
+      ...OPCOES[idioma].flatMap((o) => o.flags.map((f) => `kayo ${f}`)),
       ...exemplosDe(idioma).map((x) => x.comando),
     ]),
   ];

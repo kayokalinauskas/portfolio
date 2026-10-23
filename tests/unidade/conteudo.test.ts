@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ancora } from "@/components/ancora";
-import { MANUAL, PAGINAS, PROJETOS, type Bloco, type Pagina } from "@/content/manual";
+import { MANUAL, OPCOES, PAGINAS, PROJETOS, type Bloco, type Pagina } from "@/content/manual";
 
 // As duas línguas são escritas à mão: estes testes garantem que uma não fique para trás.
 
@@ -49,6 +49,17 @@ describe("conteúdo", () => {
       expect(comandos.blocos.map((b) => (b.tipo === "item" ? b.rotulo : ""))).toEqual(PROJETOS.map((p) => `{${p}(1)}`));
       const linha = sinopse.blocos[0].tipo === "sinopse" ? sinopse.blocos[0].linhas[0] : "";
       for (const p of PROJETOS) expect(linha).toContain(`[${p.slice("kayo-".length)}](`);
+    }
+  });
+
+  it("toda opção de OPÇÕES aparece na sinopse, com o link para a seção dela", () => {
+    for (const idioma of ["pt", "en"] as const) {
+      const secoes = MANUAL[idioma].kayo.secoes;
+      const opcoes = secoes.find((s) => s.titulo === (idioma === "pt" ? "OPÇÕES" : "OPTIONS"))!;
+      const sinopse = secoes[1].blocos[0].tipo === "sinopse" ? secoes[1].blocos[0].linhas.join(" ") : "";
+      const flags = OPCOES[idioma].flatMap((o) => o.flags);
+      expect(opcoes.blocos).toHaveLength(OPCOES[idioma].length);
+      for (const f of flags) expect(sinopse).toContain(`[[${f}](#${ancora(opcoes.titulo)})]`);
     }
   });
 

@@ -56,6 +56,37 @@ function sinopseDosProjetos(idioma: Idioma) {
   return `**kayo** {${nomes.join(" | ")}}`;
 }
 
+// As competências, escritas como as opções do comando kayo. Cada uma aparece em OPÇÕES,
+// na SINOPSE (com o link para a explicação) e no prompt do q (kayo --sql mostra o texto).
+export type Opcao = { flags: string[]; texto: string };
+
+export const OPCOES: Record<Idioma, Opcao[]> = {
+  pt: [
+    { flags: ["--java", "--spring-boot"], texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ." },
+    { flags: ["--react", "--typescript"], texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright." },
+    { flags: ["--sql"], texto: "PostgreSQL e Oracle; consultas para investigar incidentes em produção." },
+    { flags: ["--integracoes"], texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros." },
+  ],
+  en: [
+    {
+      flags: ["--java", "--spring-boot"],
+      texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ.",
+    },
+    { flags: ["--react", "--typescript"], texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright." },
+    { flags: ["--sql"], texto: "PostgreSQL and Oracle; queries to investigate production incidents." },
+    { flags: ["--integrations"], texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding." },
+  ],
+};
+
+function itensDasOpcoes(opcoes: Opcao[]): Bloco[] {
+  return opcoes.map(({ flags, texto }) => ({ tipo: "item", rotulo: flags.map((f) => `**${f}**`).join(", "), texto }));
+}
+
+// "kayo [--java] [--spring-boot] …", cada opção levando à seção OPÇÕES ("#opcoes")
+function sinopseDasOpcoes(opcoes: Opcao[], secao: string) {
+  return `**kayo** ${opcoes.flatMap((o) => o.flags.map((f) => `[[${f}](#${secao})]`)).join(" ")}`;
+}
+
 function comandos(projetos: Record<Projeto, PaginaDeProjeto>): Bloco[] {
   return PROJETOS.map((p) => ({ tipo: "item", rotulo: `{${p}(1)}`, texto: projetos[p].resumo }));
 }
@@ -347,7 +378,11 @@ const kayoPt: Pagina = {
       blocos: [
         {
           tipo: "sinopse",
-          linhas: [sinopseDosProjetos("pt"), `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL})}`],
+          linhas: [
+            sinopseDosProjetos("pt"),
+            sinopseDasOpcoes(OPCOES.pt, "opcoes"),
+            `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL})}`,
+          ],
         },
       ],
     },
@@ -363,27 +398,7 @@ const kayoPt: Pagina = {
       ],
     },
     { titulo: "COMANDOS", blocos: comandos(projetosPt) },
-    {
-      titulo: "OPÇÕES",
-      blocos: [
-        {
-          tipo: "item",
-          rotulo: "**--java**, **--spring-boot**",
-          texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ.",
-        },
-        {
-          tipo: "item",
-          rotulo: "**--react**, **--typescript**",
-          texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright.",
-        },
-        { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL e Oracle; consultas para investigar incidentes em produção." },
-        {
-          tipo: "item",
-          rotulo: "**--integracoes**",
-          texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros.",
-        },
-      ],
-    },
+    { titulo: "OPÇÕES", blocos: itensDasOpcoes(OPCOES.pt) },
     {
       titulo: "HISTÓRICO",
       blocos: [
@@ -702,7 +717,11 @@ const kayoEn: Pagina = {
       blocos: [
         {
           tipo: "sinopse",
-          linhas: [sinopseDosProjetos("en"), `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL})}`],
+          linhas: [
+            sinopseDosProjetos("en"),
+            sinopseDasOpcoes(OPCOES.en, "options"),
+            `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL})}`,
+          ],
         },
       ],
     },
@@ -718,27 +737,7 @@ const kayoEn: Pagina = {
       ],
     },
     { titulo: "COMMANDS", blocos: comandos(projetosEn) },
-    {
-      titulo: "OPTIONS",
-      blocos: [
-        {
-          tipo: "item",
-          rotulo: "**--java**, **--spring-boot**",
-          texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ.",
-        },
-        {
-          tipo: "item",
-          rotulo: "**--react**, **--typescript**",
-          texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright.",
-        },
-        { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL and Oracle; queries to investigate production incidents." },
-        {
-          tipo: "item",
-          rotulo: "**--integrations**",
-          texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding.",
-        },
-      ],
-    },
+    { titulo: "OPTIONS", blocos: itensDasOpcoes(OPCOES.en) },
     {
       titulo: "HISTORY",
       blocos: [
@@ -817,7 +816,8 @@ export const SESSAO = {
     qualPagina: "Qual página do manual você quer?",
     semArquivo: (a: string) => `O arquivo ${a} não existe.`,
     usoDoLang: "uso: lang pt|en",
-    usoDoKayo: "uso: kayo {ozamigos | finalizadoras | acelerato} [opções], ou kayo {--curriculo | --email}",
+    usoDoKayo: "uso: kayo {ozamigos | finalizadoras | acelerato}, kayo [opções] ou kayo {--curriculo | --email}",
+    opcaoDesconhecida: (o: string) => `kayo: opção desconhecida: ${o}`,
     ajuda: {
       titulo: "RESUMO DOS COMANDOS DO LESS",
       rodape: "Aperte q ou h para voltar.",
@@ -877,7 +877,8 @@ export const SESSAO = {
     qualPagina: "What manual page do you want?",
     semArquivo: (a: string) => `The file ${a} does not exist.`,
     usoDoLang: "usage: lang pt|en",
-    usoDoKayo: "usage: kayo {ozamigos | finalizadoras | acelerato} [options], or kayo {--resume | --email}",
+    usoDoKayo: "usage: kayo {ozamigos | finalizadoras | acelerato}, kayo [options] or kayo {--resume | --email}",
+    opcaoDesconhecida: (o: string) => `kayo: unknown option: ${o}`,
     ajuda: {
       titulo: "SUMMARY OF LESS COMMANDS",
       rodape: "Press q or h to return.",

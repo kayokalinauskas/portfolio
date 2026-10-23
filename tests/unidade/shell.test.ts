@@ -58,6 +58,23 @@ describe("interpretar", () => {
     expect(interpretar("xyz", ctx({ idioma: "en" })).linhas).toEqual(["zsh: command not found: xyz"]);
   });
 
+  it("kayo --sql mostra a explicação da opção, como em OPÇÕES", () => {
+    expect(interpretar("kayo --sql", ctx()).linhas).toEqual([
+      "PostgreSQL e Oracle; consultas para investigar incidentes em produção.",
+    ]);
+    // duas opções do mesmo item mostram o texto uma vez só, na ordem da página
+    expect(interpretar("kayo --sql --spring-boot --java", ctx()).linhas).toHaveLength(2);
+    expect(interpretar("kayo --integrations", ctx({ idioma: "en" })).linhas[0]).toMatch(/^REST and SOAP/);
+  });
+
+  it("uma opção que não existe é recusada, sem inventar nada", () => {
+    expect(interpretar("kayo --python", ctx()).linhas).toEqual([
+      "kayo: opção desconhecida: --python",
+      expect.stringMatching(/^uso: kayo/),
+    ]);
+    expect(interpretar("kayo --integracoes", ctx({ idioma: "en" })).linhas[0]).toBe("kayo: unknown option: --integracoes");
+  });
+
   it("lang só aceita pt e en", () => {
     expect(interpretar("lang en", ctx()).efeito).toEqual({ tipo: "idioma", idioma: "en" });
     expect(interpretar("lang fr", ctx()).linhas).toEqual(["uso: lang pt|en"]);
@@ -74,6 +91,11 @@ describe("Tab", () => {
   it("completa até onde as opções concordam", () => {
     expect(completar("kayo ozamigos --w", opcoes)).toEqual({ sugestoes: ["--web", "--windows"] });
     expect(completar("man k", opcoes)).toEqual({ entrada: "man kayo" });
+  });
+
+  it("completa as opções", () => {
+    expect(completar("kayo --s", opcoes)).toEqual({ sugestoes: ["--spring-boot", "--sql"] });
+    expect(completar("kayo --sq", opcoes)).toEqual({ entrada: "kayo --sql " });
   });
 
   it("não completa o que não existe, nem o sudo", () => {
