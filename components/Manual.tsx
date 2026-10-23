@@ -1,4 +1,16 @@
-import { CURRICULO, MANUAL, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
+import {
+  caminho,
+  CURRICULO,
+  EMAIL,
+  GITHUB,
+  LINKEDIN,
+  MANUAL,
+  SESSAO,
+  type Bloco,
+  type Idioma,
+  type Slug,
+} from "@/content/manual";
+import { SITE } from "./metadados";
 import { Texto, semMarcacao } from "./Texto";
 import Sessao from "./Sessao";
 import estilos from "./manual.module.css";
@@ -57,6 +69,25 @@ function BlocoDoManual({ bloco, idioma }: { bloco: Bloco; idioma: Idioma }) {
   }
 }
 
+// Os dados da pessoa para os buscadores (schema.org), só na página principal.
+function DadosDaPessoa({ idioma }: { idioma: Idioma }) {
+  const dados = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Kayo Kalinauskas",
+    jobTitle: idioma === "pt" ? "Desenvolvedor full stack" : "Full stack developer",
+    url: SITE + caminho(idioma, "kayo"),
+    email: `mailto:${EMAIL}`,
+    sameAs: [GITHUB, LINKEDIN],
+    knowsAbout: ["Java", "Spring Boot", "React", "TypeScript", "SQL", "APIs REST"],
+    knowsLanguage: ["pt-BR", "en"],
+  };
+  // o "<" escapado impede que um texto feche a tag <script> antes da hora
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dados).replace(/</g, "\\u003c") }} />
+  );
+}
+
 export default function Manual({ idioma, slug }: { idioma: Idioma; slug: Slug }) {
   const pagina = MANUAL[idioma][slug];
   const s = SESSAO[idioma];
@@ -65,6 +96,7 @@ export default function Manual({ idioma, slug }: { idioma: Idioma; slug: Slug })
 
   return (
     <Sessao idioma={idioma} slug={slug} curriculo={CURRICULO[idioma]}>
+      {slug === "kayo" && <DadosDaPessoa idioma={idioma} />}
       <article className={estilos.manual} id="manual">
         <header className={estilos.cabecalho}>
           <span>{nome}</span>

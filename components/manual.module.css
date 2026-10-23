@@ -329,11 +329,37 @@ h1.paragrafo {
 }
 
 @media (max-width: 420px) {
+  /* some da tela, mas continua sendo o nome do botão para quem usa leitor de tela */
   .rotuloDaTecla {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .teclas {
     gap: 0 3ch;
+  }
+}
+
+/* ---------- impressão: só o manual, sem a sessão do terminal ---------- */
+
+@media print {
+  .topo,
+  .less,
+  .painel,
+  .pular {
+    display: none;
+  }
+
+  .sessao {
+    max-width: none;
+    padding: 0;
+  }
+
+  .manual a {
+    text-decoration: none;
   }
 }

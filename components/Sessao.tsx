@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
 import { caminho, EMAIL, PAGINAS, SESSAO, type Idioma, type Slug } from "@/content/manual";
 import estilos from "./manual.module.css";
 
 type Modo = "less" | "busca" | "ajuda" | "prompt";
 type Saida = { comando: string; linhas: ReactNode[] };
-
 
 // "Thu Oct 22 09:14:07", o formato do macOS
 function formatarLogin(data: Date) {
@@ -26,6 +25,25 @@ function formatarLogin(data: Date) {
   );
   return `${p.weekday} ${p.month} ${p.day} ${p.hour}:${p.minute}:${p.second}`;
 }
+
+// O último acesso é lido e regravado uma vez por carregamento da página; navegar entre as
+// páginas do manual não conta como um login novo.
+let ultimoLogin: string | null = null;
+function lerLogin() {
+  if (ultimoLogin === null) {
+    let anterior: Date | null = null;
+    try {
+      const guardado = localStorage.getItem("ultimo-acesso");
+      if (guardado) anterior = new Date(guardado);
+      localStorage.setItem("ultimo-acesso", new Date().toISOString());
+    } catch {
+      // sem armazenamento: mostra a hora de agora
+    }
+    ultimoLogin = formatarLogin(anterior && !isNaN(+anterior) ? anterior : new Date());
+  }
+  return ultimoLogin;
+}
+const semMudancas = () => () => {};
 
 function trocarTema() {
   const raiz = document.documentElement;
@@ -71,6 +89,16 @@ function procurar(raiz: HTMLElement, termo: string) {
   return faixas;
 }
 
+// A tecla e o que ela faz, num botão só: no celular, é o jeito de usar o manual.
+function Tecla({ k, acao, rotulo }: { k: string; acao: () => void; rotulo: string }) {
+  return (
+    <button type="button" className={estilos.tecla} onClick={acao}>
+      <b>{k}</b>
+      <span className={estilos.rotuloDaTecla}> {rotulo}</span>
+    </button>
+  );
+}
+
 export default function Sessao({
   idioma,
   slug,
@@ -86,10 +114,10 @@ export default function Sessao({
   const outro: Idioma = idioma === "pt" ? "en" : "pt";
   const router = useRouter();
 
-  const [login, setLogin] = useState("");
+  const login = useSyncExternalStore(semMudancas, lerLogin, () => "");
   const [digitado, setDigitado] = useState<string | null>(null);
   const [modo, setModo] = useState<Modo>("less");
-  const [posicao, setPosicao] = useState({ linha: 1, total: 1, porcento: 0, fim: false });
+  const [posicao, setPosicao] = useState({ porcento: 0, fim: false });
   const [termo, setTermo] = useState("");
   const [busca, setBusca] = useState<{ faixas: Range[]; atual: number } | null>(null);
   const [historico, setHistorico] = useState<Saida[]>([]);
@@ -104,36 +132,27 @@ export default function Sessao({
     return manual ? parseFloat(getComputedStyle(manual).lineHeight) || 24 : 24;
   };
 
-  // Último login de verdade: a visita anterior deste navegador.
-  useEffect(() => {
-    let anterior: Date | null = null;
-    try {
-      const guardado = localStorage.getItem("ultimo-acesso");
-      if (guardado) anterior = new Date(guardado);
-      localStorage.setItem("ultimo-acesso", new Date().toISOString());
-    } catch {
-      // sem armazenamento: mostra a hora de agora
-    }
-    setLogin(formatarLogin(anterior && !isNaN(+anterior) ? anterior : new Date()));
-  }, []);
-
   // A digitação de "man ..." só na primeira página da visita.
   useEffect(() => {
     const raiz = document.documentElement;
-    const encerrar = () => {
+    const lembrar = () => {
       delete raiz.dataset.intro;
-      setDigitado(null);
       try {
         sessionStorage.setItem("intro", "1");
-      } catch {}
+      } catch {
+        // sem armazenamento: a digitação volta na próxima página
+      }
     };
     if (!raiz.dataset.intro) {
-      encerrar();
+      lembrar();
       return;
     }
+    const encerrar = () => {
+      lembrar();
+      setDigitado(null);
+    };
     const comando = `man ${slug}`;
     let i = 0;
-    setDigitado("");
     const relogio = window.setInterval(() => {
       i += 1;
       setDigitado(comando.slice(0, i));
@@ -155,38 +174,36 @@ export default function Sessao({
     };
   }, [slug]);
 
-  // A posição na barra do less acompanha a rolagem.
+  // A posição na barra do less acompanha a rolagem: no máximo uma medida por quadro, e a
+  // barra só redesenha quando o número muda.
   useEffect(() => {
+    let quadro = 0;
     const medir = () => {
-      const lh = alturaDaLinha();
-      const altura = document.documentElement.scrollHeight;
-      const maximo = altura - window.innerHeight;
-      const linha = Math.floor(window.scrollY / lh) + 1;
-      const total = Math.max(linha, Math.ceil(altura / lh));
+      quadro = 0;
+      const maximo = document.documentElement.scrollHeight - window.innerHeight;
       const fim = maximo <= 2 || window.scrollY >= maximo - 2;
-      setPosicao({ linha, total, porcento: maximo > 0 ? Math.round((window.scrollY / maximo) * 100) : 100, fim });
+      const porcento = maximo > 0 ? Math.round((window.scrollY / maximo) * 100) : 100;
+      setPosicao((p) => (p.porcento === porcento && p.fim === fim ? p : { porcento, fim }));
     };
-    medir();
-    window.addEventListener("scroll", medir, { passive: true });
-    window.addEventListener("resize", medir);
+    const agendar = () => {
+      if (!quadro) quadro = requestAnimationFrame(medir);
+    };
+    agendar();
+    window.addEventListener("scroll", agendar, { passive: true });
+    window.addEventListener("resize", agendar);
     return () => {
-      window.removeEventListener("scroll", medir);
-      window.removeEventListener("resize", medir);
+      cancelAnimationFrame(quadro);
+      window.removeEventListener("scroll", agendar);
+      window.removeEventListener("resize", agendar);
     };
   }, []);
 
-  const irPara = useCallback((faixa: Range) => {
-    const caixa = faixa.getBoundingClientRect();
-    window.scrollTo({ top: window.scrollY + caixa.top - window.innerHeight / 3 });
-  }, []);
-
-  const marcarAtual = useCallback(
-    (faixas: Range[], atual: number) => {
-      realcar("busca-atual", faixas[atual] ? [faixas[atual]] : []);
-      if (faixas[atual]) irPara(faixas[atual]);
-    },
-    [irPara],
-  );
+  // O resultado atual da busca fica realçado e na tela; muda com a busca, com n e com N.
+  useEffect(() => {
+    const faixa = busca?.faixas[busca.atual];
+    realcar("busca-atual", faixa ? [faixa] : []);
+    if (faixa) window.scrollTo({ top: window.scrollY + faixa.getBoundingClientRect().top - window.innerHeight / 3 });
+  }, [busca]);
 
   const buscar = (e: FormEvent) => {
     e.preventDefault();
@@ -198,21 +215,12 @@ export default function Sessao({
     const faixas = procurar(manual, termo.trim());
     realcar("busca", faixas);
     setBusca({ faixas, atual: 0 });
-    marcarAtual(faixas, 0);
     setModo("less");
   };
 
-  const proximo = useCallback(
-    (passo: number) => {
-      setBusca((b) => {
-        if (!b || !b.faixas.length) return b;
-        const atual = (b.atual + passo + b.faixas.length) % b.faixas.length;
-        marcarAtual(b.faixas, atual);
-        return { ...b, atual };
-      });
-    },
-    [marcarAtual],
-  );
+  const proximo = useCallback((passo: number) => {
+    setBusca((b) => (b && b.faixas.length ? { ...b, atual: (b.atual + passo + b.faixas.length) % b.faixas.length } : b));
+  }, []);
 
   const abrirBusca = useCallback(() => {
     setTermo("");
@@ -369,14 +377,6 @@ export default function Sessao({
       : s.semResultados
     : null;
 
-  // a tecla e o que ela faz, num botão só: no celular, é o jeito de usar o manual
-  const Tecla = ({ k, acao, rotulo }: { k: string; acao: () => void; rotulo: string }) => (
-    <button type="button" className={estilos.tecla} onClick={acao} aria-label={rotulo}>
-      <b>{k}</b>
-      <span className={estilos.rotuloDaTecla}> {rotulo}</span>
-    </button>
-  );
-
   return (
     <div className={estilos.sessao}>
       <a href="#manual" className={estilos.pular}>
@@ -423,7 +423,9 @@ export default function Sessao({
           ))}
           {historico.length === 0 && (
             <p className={estilos.suave}>
-              {idioma === "pt" ? "Digite help para ver os comandos, ou man kayo para voltar." : "Type help to see the commands, or man kayo to go back."}
+              {idioma === "pt"
+                ? "Digite help para ver os comandos, ou man kayo para voltar."
+                : "Type help to see the commands, or man kayo to go back."}
             </p>
           )}
           <form onSubmit={executar} className={estilos.linhaDoPrompt}>
@@ -470,7 +472,9 @@ export default function Sessao({
           <p className={estilos.lessTexto}>
             <span className={estilos.posicao}>
               {slug}(1) {posicao.fim ? `(${s.fim})` : `${posicao.porcento}%`}
-              {resultadoDaBusca && <span className={estilos.resultado}> {resultadoDaBusca}</span>}
+              <span className={estilos.resultado} aria-live="polite">
+                {resultadoDaBusca && ` ${resultadoDaBusca}`}
+              </span>
             </span>
             <span className={estilos.teclas}>
               <Tecla k="h" acao={() => setModo("ajuda")} rotulo={s.teclas.ajuda} />

@@ -10,6 +10,8 @@ const antesDePintar = `try{var r=document.documentElement,t=localStorage.getItem
 export default function Documento({ lang, children }: { lang: string; children: ReactNode }) {
   return (
     <html lang={lang} className={classesDasFontes} suppressHydrationWarning>
+      {/* o layout raiz do App Router monta o <head>; a regra é do roteador antigo */}
+      {/* eslint-disable-next-line @next/next/no-head-element */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: antesDePintar }} />
       </head>

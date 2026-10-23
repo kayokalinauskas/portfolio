@@ -1,0 +1,4 @@
+# o repositório guarda tudo com LF, como o Prettier escreve; os PDFs e as fontes ficam intactos
+* text=auto eol=lf
+*.pdf binary
+*.ttf binary

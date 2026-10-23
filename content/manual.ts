@@ -84,7 +84,8 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "item",
             rotulo: "{kayo-finalizadoras(1)}",
-            texto: "Ferramenta interna da Bluesoft: mapeamentos em lote pela API REST do ERP, com as planilhas processadas num Web Worker.",
+            texto:
+              "Ferramenta interna da Bluesoft: mapeamentos em lote pela API REST do ERP, com as planilhas processadas num Web Worker.",
           },
           {
             tipo: "item",
@@ -96,10 +97,22 @@ const pt: Record<Slug, Pagina> = {
       {
         titulo: "OPÇÕES",
         blocos: [
-          { tipo: "item", rotulo: "**--java**, **--spring-boot**", texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ." },
-          { tipo: "item", rotulo: "**--react**, **--typescript**", texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright." },
+          {
+            tipo: "item",
+            rotulo: "**--java**, **--spring-boot**",
+            texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ.",
+          },
+          {
+            tipo: "item",
+            rotulo: "**--react**, **--typescript**",
+            texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright.",
+          },
           { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL e Oracle; consultas para investigar incidentes em produção." },
-          { tipo: "item", rotulo: "**--integracoes**", texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros." },
+          {
+            tipo: "item",
+            rotulo: "**--integracoes**",
+            texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros.",
+          },
         ],
       },
       {
@@ -112,7 +125,10 @@ const pt: Record<Slug, Pagina> = {
                 "**2023-atual**",
                 "Analista de Suporte de API e Integrações, Bluesoft. Integrações com parceiros, do kick-off ao pós-release, e investigação de incidentes nas APIs do ERP.",
               ],
-              ["**2021-2023**", "Desenvolvedor Full Stack, OCTO. React, Redux, Angular, C# e ASP.NET em um ERP com mais de 30 clientes."],
+              [
+                "**2021-2023**",
+                "Desenvolvedor Full Stack, OCTO. React, Redux, Angular, C# e ASP.NET em um ERP com mais de 30 clientes.",
+              ],
               ["**2020-2021**", "Líder de Suporte Técnico, OCTO."],
               ["**2015-2019**", "Analista de Suporte Técnico, Hipertec Sistemas."],
             ],
@@ -157,7 +173,12 @@ const pt: Record<Slug, Pagina> = {
         titulo: "NOME",
         blocos: [{ tipo: "texto", texto: "**kayo-ozamigos** - transmissão de tela de jogos entre amigos, com voz e chat" }],
       },
-      { titulo: "SINOPSE", blocos: [{ tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] }] },
+      {
+        titulo: "SINOPSE",
+        blocos: [
+          { tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] },
+        ],
+      },
       {
         titulo: "DESCRIÇÃO",
         blocos: [
@@ -176,7 +197,10 @@ const pt: Record<Slug, Pagina> = {
             linhas: [
               ["**servidor**", "Java 25 e Spring Boot 4.1. Salas e sinalização por WebSocket; o servidor nunca recebe vídeo."],
               ["**interface**", "React 19, TypeScript e Vite."],
-              ["**vídeo**", "WebRTC peer-to-peer. H.265 codificado na GPU, com volta para H.264 quando um dos lados não suporta."],
+              [
+                "**vídeo**",
+                "WebRTC peer-to-peer. H.265 codificado na GPU, com volta para H.264 quando um dos lados não suporta.",
+              ],
               ["**voz**", "Opus, com redução de ruído por RNNoise (WebAssembly) num AudioWorklet."],
               [
                 "**desktop**",
@@ -192,7 +216,8 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "item",
             rotulo: "**Vídeo direto entre os PCs**",
-            texto: "O servidor só coordena as conexões. Sem tráfego de mídia, ele roda em um plano gratuito e não vira gargalo quando mais gente transmite.",
+            texto:
+              "O servidor só coordena as conexões. Sem tráfego de mídia, ele roda em um plano gratuito e não vira gargalo quando mais gente transmite.",
           },
           {
             tipo: "item",
@@ -203,7 +228,8 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "item",
             rotulo: "**Medir antes de mudar**",
-            texto: "Métricas do WebRTC a cada segundo e testes de bancada reproduzíveis guiaram as mudanças de captura, codec e rede.",
+            texto:
+              "Métricas do WebRTC a cada segundo e testes de bancada reproduzíveis guiaram as mudanças de captura, codec e rede.",
           },
         ],
       },
@@ -235,12 +261,13 @@ const pt: Record<Slug, Pagina> = {
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
     titulo: "kayo-finalizadoras(1) · Mapeamento de Finalizadoras",
-    descricao:
-      "Mapeamento de Finalizadoras: ferramenta interna da Bluesoft para mapeamentos em lote pela API REST do ERP.",
+    descricao: "Mapeamento de Finalizadoras: ferramenta interna da Bluesoft para mapeamentos em lote pela API REST do ERP.",
     secoes: [
       {
         titulo: "NOME",
-        blocos: [{ tipo: "texto", texto: "**kayo-finalizadoras** - mapeamento de subfinalizadoras em lote pela API do ERP Bluesoft" }],
+        blocos: [
+          { tipo: "texto", texto: "**kayo-finalizadoras** - mapeamento de subfinalizadoras em lote pela API do ERP Bluesoft" },
+        ],
       },
       { titulo: "SINOPSE", blocos: [{ tipo: "sinopse", linhas: ["**kayo finalizadoras** [~planilha.xlsx~ | ~planilha.csv~]"] }] },
       {
@@ -322,7 +349,10 @@ const pt: Record<Slug, Pagina> = {
       },
       {
         titulo: "REPOSITÓRIO",
-        blocos: [{ tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` }, { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` }],
+        blocos: [
+          { tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` },
+          { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
+        ],
       },
       { titulo: "VEJA TAMBÉM", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-finalizadoras(1)}" }] },
     ],
@@ -384,10 +414,22 @@ const en: Record<Slug, Pagina> = {
       {
         titulo: "OPTIONS",
         blocos: [
-          { tipo: "item", rotulo: "**--java**, **--spring-boot**", texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ." },
-          { tipo: "item", rotulo: "**--react**, **--typescript**", texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright." },
+          {
+            tipo: "item",
+            rotulo: "**--java**, **--spring-boot**",
+            texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ.",
+          },
+          {
+            tipo: "item",
+            rotulo: "**--react**, **--typescript**",
+            texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright.",
+          },
           { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL and Oracle; queries to investigate production incidents." },
-          { tipo: "item", rotulo: "**--integrations**", texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding." },
+          {
+            tipo: "item",
+            rotulo: "**--integrations**",
+            texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding.",
+          },
         ],
       },
       {
@@ -440,8 +482,16 @@ const en: Record<Slug, Pagina> = {
     descricao:
       "Ozamigos: game screen sharing between friends, with voice and chat. Peer-to-peer WebRTC, Spring Boot, React, Electron and native capture in C#.",
     secoes: [
-      { titulo: "NAME", blocos: [{ tipo: "texto", texto: "**kayo-ozamigos** - game screen sharing between friends, with voice and chat" }] },
-      { titulo: "SYNOPSIS", blocos: [{ tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] }] },
+      {
+        titulo: "NAME",
+        blocos: [{ tipo: "texto", texto: "**kayo-ozamigos** - game screen sharing between friends, with voice and chat" }],
+      },
+      {
+        titulo: "SYNOPSIS",
+        blocos: [
+          { tipo: "sinopse", linhas: [`**kayo ozamigos** [[--web](${OZAMIGOS_WEB}) | [--windows](${OZAMIGOS_WINDOWS})]`] },
+        ],
+      },
       {
         titulo: "DESCRIPTION",
         blocos: [
@@ -476,7 +526,8 @@ const en: Record<Slug, Pagina> = {
           {
             tipo: "item",
             rotulo: "**Video straight between PCs**",
-            texto: "The server only coordinates connections. With no media traffic, it runs on a free plan and does not become a bottleneck as more people stream.",
+            texto:
+              "The server only coordinates connections. With no media traffic, it runs on a free plan and does not become a bottleneck as more people stream.",
           },
           {
             tipo: "item",
@@ -570,7 +621,10 @@ const en: Record<Slug, Pagina> = {
     titulo: "kayo-acelerato(1) · Acelerato Helper",
     descricao: "Acelerato Helper: a Chrome extension used by the Bluesoft support team, with 60+ users.",
     secoes: [
-      { titulo: "NAME", blocos: [{ tipo: "texto", texto: "**kayo-acelerato** - Chrome extension for support work in Acelerato" }] },
+      {
+        titulo: "NAME",
+        blocos: [{ tipo: "texto", texto: "**kayo-acelerato** - Chrome extension for support work in Acelerato" }],
+      },
       { titulo: "SYNOPSIS", blocos: [{ tipo: "sinopse", linhas: ["**kayo acelerato** [~ticket-number~]"] }] },
       {
         titulo: "DESCRIPTION",
@@ -596,10 +650,16 @@ const en: Record<Slug, Pagina> = {
           },
         ],
       },
-      { titulo: "ARCHITECTURE", blocos: [{ tipo: "texto", texto: "Manifest V3, dependency-free JavaScript, using only native browser APIs." }] },
+      {
+        titulo: "ARCHITECTURE",
+        blocos: [{ tipo: "texto", texto: "Manifest V3, dependency-free JavaScript, using only native browser APIs." }],
+      },
       {
         titulo: "REPOSITORY",
-        blocos: [{ tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` }, { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` }],
+        blocos: [
+          { tipo: "texto", texto: `@{${GITHUB}/acelerato-extension}` },
+          { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
+        ],
       },
       { titulo: "SEE ALSO", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-finalizadoras(1)}" }] },
     ],
