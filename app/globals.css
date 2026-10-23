@@ -1,14 +1,14 @@
 /* Solarized Light (claro) e Tomorrow Night (escuro): esquemas de terminal de verdade.
-   No claro, o texto e o suave foram escurecidos: o texto para ler sem esforço (7:1),
-   o suave para passar de 4,5:1. */
+   No claro, o texto foi escurecido para ler sem esforço (7:1), e o suave, o verde e o
+   amarelo para passar de 4,5:1 sobre o fundo (o amarelo também é fundo do texto claro). */
 :root {
   --fundo: #fdf6e3;
   --texto: #3e5259;
   --forte: #073642;
   --suave: #5f7378;
-  --verde: #6c7a00;
+  --verde: #5f6b00;
   --azul: #1f73b3;
-  --amarelo: #b58900;
+  --amarelo: #8a6800;
   --barra-fundo: #586e75;
   --barra-texto: #fdf6e3;
   --painel: #eee8d5;

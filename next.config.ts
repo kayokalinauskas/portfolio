@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // com um layout por idioma, o 404 do site todo precisa do global-not-found
-  experimental: { globalNotFound: true },
+  // o CSS do site tem ~5 KB: em linha no HTML, ele não segura a primeira pintura
+  experimental: { globalNotFound: true, inlineCss: true },
   // os endereços antigos (/pt-BR e /en com o roteador de idiomas) continuam funcionando
   poweredByHeader: false,
   // Cabeçalhos de segurança para todas as respostas. A política de conteúdo não limita os

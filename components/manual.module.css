@@ -37,6 +37,12 @@
   color: var(--suave);
 }
 
+/* a data do último login chega depois de montar a página: o espaço dela já fica guardado */
+.login {
+  display: inline-block;
+  min-width: 19ch;
+}
+
 .usuario {
   color: var(--verde);
 }

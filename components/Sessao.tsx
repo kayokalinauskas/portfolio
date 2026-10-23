@@ -434,7 +434,9 @@ export default function Sessao({
       </a>
 
       <div className={estilos.topo} aria-hidden="true">
-        <p className={estilos.suave}>Last login: {login || " "} on ttys001</p>
+        <p className={estilos.suave}>
+          Last login: <span className={estilos.login}>{login}</span> on ttys001
+        </p>
         <p>
           <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
           {/* durante a digitação, o texto digitado toma o lugar do comando (que só existe
@@ -450,7 +452,7 @@ export default function Sessao({
         </p>
       </div>
 
-      <div className={estilos.conteudo}>{children}</div>
+      <main className={estilos.conteudo}>{children}</main>
 
       {modo === "ajuda" && (
         <div ref={painelDaAjuda} className={estilos.painel} role="dialog" aria-label={s.ajuda.titulo}>
