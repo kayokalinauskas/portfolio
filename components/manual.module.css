@@ -8,6 +8,8 @@
   --entre: 3ch;
   --texto-max: 66ch;
   --largura: calc(var(--titulos) + var(--entre) + var(--texto-max));
+  /* o painel da ajuda e do prompt abre logo acima da barra do less */
+  --altura-da-barra: calc(1.7em + 14px);
   max-width: calc(var(--largura) + 2 * var(--margem));
   margin: 0 auto;
   padding: 56px var(--margem) 120px;
@@ -117,6 +119,11 @@ h1.paragrafo {
   font-weight: inherit;
 }
 
+/* um endereço longo entre < > quebra onde precisar, em vez de esticar a página no celular */
+.manual a {
+  overflow-wrap: anywhere;
+}
+
 /* a segunda linha de uma sinopse longa recua até depois do nome do comando */
 .sinopse p {
   padding-left: 5ch;
@@ -160,7 +167,7 @@ h1.paragrafo {
   bottom: 0;
   z-index: 5;
   background: var(--fundo);
-  padding: 0 var(--margem) 10px;
+  padding: 0 var(--margem) max(10px, env(safe-area-inset-bottom));
   --margem: 32px;
 }
 
@@ -177,6 +184,7 @@ h1.paragrafo {
   gap: 0 2ch;
   background: var(--barra-fundo);
   color: var(--barra-texto);
+  align-items: center;
   padding: 2px 1ch;
 }
 
@@ -195,6 +203,7 @@ h1.paragrafo {
 }
 
 .tecla {
+  position: relative;
   font: inherit;
   color: inherit;
   background: none;
@@ -202,6 +211,7 @@ h1.paragrafo {
   padding: 0;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .tecla b {
@@ -210,9 +220,11 @@ h1.paragrafo {
   text-underline-offset: 3px;
 }
 
-.tecla:hover {
-  color: var(--fundo);
-  background: var(--amarelo);
+@media (hover: hover) {
+  .tecla:hover {
+    color: var(--fundo);
+    background: var(--amarelo);
+  }
 }
 
 .busca {
@@ -237,7 +249,7 @@ h1.paragrafo {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(1.7em + 14px);
+  bottom: var(--altura-da-barra);
   z-index: 4;
   max-height: 60vh;
   overflow-y: auto;
@@ -314,13 +326,29 @@ h1.paragrafo {
     margin-top: 0 !important;
   }
 
+  /* no celular sobra um nome no cabeçalho, e o rodapé quebra em linhas */
   .colecao,
-  .posicao {
+  .cabecalho > :last-child,
+  .nomeDaPagina {
     display: none;
   }
 
-  .lessTexto {
-    justify-content: flex-end;
+  .rodape {
+    flex-wrap: wrap;
+  }
+
+  /* durante a busca, a barra mostra só "1/4" no lugar da posição, e o n e o N tomam o
+     lugar do tema e do idioma */
+  .porcentoNaBusca,
+  .contagem,
+  .recolhida {
+    display: none;
+  }
+
+  /* abaixo de 16px, o Safari do iPhone dá zoom na página ao tocar no campo */
+  .busca input,
+  .linhaDoPrompt input {
+    font-size: 16px;
   }
 
   .ajudaLinha {
@@ -361,5 +389,32 @@ h1.paragrafo {
 
   .manual a {
     text-decoration: none;
+  }
+}
+
+/* ---------- toque: as teclas da barra ganham a altura de um dedo ---------- */
+
+@media (pointer: coarse) {
+  .sessao {
+    --altura-da-barra: calc(44px + max(10px, env(safe-area-inset-bottom)));
+  }
+
+  .lessTexto {
+    padding-block: 0;
+  }
+
+  .tecla {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 0.5ch;
+  }
+
+  /* a posição e as cinco teclas cabem numa linha até em 320px */
+  .lessTexto {
+    gap: 0 1ch;
+  }
+
+  .teclas {
+    gap: 0;
   }
 }

@@ -1,7 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { caminho, MANUAL, type Idioma, type Slug } from "@/content/manual";
 
 export const SITE = "https://kalinauskas.dev";
+
+// No celular: a barra do navegador na cor do fundo de cada tema, e o teclado virtual
+// encolhe a página (no Android), para a barra do less e o campo de busca ficarem à vista.
+export const VIEWPORT: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdf6e3" },
+    { media: "(prefers-color-scheme: dark)", color: "#1d1f21" },
+  ],
+};
 
 export function metadados(idioma: Idioma, slug: Slug): Metadata {
   const p = MANUAL[idioma][slug];

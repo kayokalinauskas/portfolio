@@ -45,12 +45,20 @@ function lerLogin() {
 }
 const semMudancas = () => () => {};
 
+// A barra do navegador no celular segue o tema escolhido aqui, não só o do sistema.
+function pintarBarraDoNavegador() {
+  const fundo = getComputedStyle(document.documentElement).getPropertyValue("--fundo").trim();
+  if (!fundo) return;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", fundo));
+}
+
 function trocarTema() {
   const raiz = document.documentElement;
   const escuroAgora = raiz.dataset.theme
     ? raiz.dataset.theme === "dark"
     : window.matchMedia("(prefers-color-scheme: dark)").matches;
   raiz.dataset.theme = escuroAgora ? "light" : "dark";
+  pintarBarraDoNavegador();
   try {
     localStorage.setItem("tema", escuroAgora ? "claro" : "escuro");
   } catch {
@@ -90,11 +98,24 @@ function procurar(raiz: HTMLElement, termo: string) {
 }
 
 // A tecla e o que ela faz, num botão só: no celular, é o jeito de usar o manual.
-function Tecla({ k, acao, rotulo }: { k: string; acao: () => void; rotulo: string }) {
+function Tecla({
+  k,
+  acao,
+  rotulo,
+  recolher,
+  sempreComRotulo,
+}: {
+  k: string;
+  acao: () => void;
+  rotulo: string;
+  recolher?: boolean;
+  sempreComRotulo?: boolean;
+}) {
+  const classes = [estilos.tecla, recolher && estilos.recolhida].filter(Boolean).join(" ");
   return (
-    <button type="button" className={estilos.tecla} onClick={acao}>
+    <button type="button" className={classes} onClick={acao}>
       <b>{k}</b>
-      <span className={estilos.rotuloDaTecla}> {rotulo}</span>
+      <span className={sempreComRotulo ? undefined : estilos.rotuloDaTecla}> {rotulo}</span>
     </button>
   );
 }
@@ -126,11 +147,15 @@ export default function Sessao({
   const entradaRef = useRef<HTMLInputElement>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
   const fimDoPrompt = useRef<HTMLDivElement>(null);
+  const painelDaAjuda = useRef<HTMLDivElement>(null);
+  const barra = useRef<HTMLDivElement>(null);
 
   const alturaDaLinha = () => {
     const manual = document.getElementById("manual");
     return manual ? parseFloat(getComputedStyle(manual).lineHeight) || 24 : 24;
   };
+
+  useEffect(pintarBarraDoNavegador, []);
 
   // A digitação de "man ..." só na primeira página da visita.
   useEffect(() => {
@@ -208,7 +233,10 @@ export default function Sessao({
   const buscar = (e: FormEvent) => {
     e.preventDefault();
     const manual = document.getElementById("manual");
+    // uma busca vazia apaga a anterior, como no less
     if (!manual || !termo.trim()) {
+      realcar("busca", []);
+      setBusca(null);
       setModo("less");
       return;
     }
@@ -221,6 +249,18 @@ export default function Sessao({
   const proximo = useCallback((passo: number) => {
     setBusca((b) => (b && b.faixas.length ? { ...b, atual: (b.atual + passo + b.faixas.length) % b.faixas.length } : b));
   }, []);
+
+  // Um toque fora da ajuda a fecha: no celular não há q nem esc.
+  useEffect(() => {
+    if (modo !== "ajuda") return;
+    const tocar = (e: PointerEvent) => {
+      const alvo = e.target as Node;
+      if (painelDaAjuda.current?.contains(alvo) || barra.current?.contains(alvo)) return;
+      setModo("less");
+    };
+    document.addEventListener("pointerdown", tocar);
+    return () => document.removeEventListener("pointerdown", tocar);
+  }, [modo]);
 
   const abrirBusca = useCallback(() => {
     setTermo("");
@@ -371,11 +411,21 @@ export default function Sessao({
     }
   };
 
-  const resultadoDaBusca = busca
-    ? busca.faixas.length
-      ? `${s.resultados(busca.faixas.length)} (${busca.atual + 1}/${busca.faixas.length})`
-      : s.semResultados
-    : null;
+  const buscando = !!busca && busca.faixas.length > 1;
+
+  // "4 resultados (1/4)"; no celular sobra só o "1/4", para a barra caber
+  const resultadoDaBusca = busca ? (
+    busca.faixas.length ? (
+      <>
+        <span className={estilos.contagem}>{s.resultados(busca.faixas.length)} </span>
+        <span className={estilos.contagem}>(</span>
+        {busca.atual + 1}/{busca.faixas.length}
+        <span className={estilos.contagem}>)</span>
+      </>
+    ) : (
+      s.semResultados
+    )
+  ) : null;
 
   return (
     <div className={estilos.sessao}>
@@ -396,7 +446,7 @@ export default function Sessao({
       <div className={estilos.conteudo}>{children}</div>
 
       {modo === "ajuda" && (
-        <div className={estilos.painel} role="dialog" aria-label={s.ajuda.titulo}>
+        <div ref={painelDaAjuda} className={estilos.painel} role="dialog" aria-label={s.ajuda.titulo}>
           <p className={estilos.ajudaTitulo}>{s.ajuda.titulo}</p>
           {s.ajuda.linhas.map(([k, d]) => (
             <p key={k} className={estilos.ajudaLinha}>
@@ -446,7 +496,7 @@ export default function Sessao({
         </div>
       )}
 
-      <div className={estilos.less}>
+      <div ref={barra} className={estilos.less}>
         {modo === "busca" ? (
           <form onSubmit={buscar} className={estilos.busca}>
             <label htmlFor="busca">/</label>
@@ -465,22 +515,31 @@ export default function Sessao({
           <p className={estilos.lessTexto}>
             <span className={estilos.posicao}>zsh</span>
             <span className={estilos.teclas}>
-              <Tecla k="esc" acao={() => setModo("less")} rotulo={s.teclas.voltar} />
+              <Tecla k="esc" acao={() => setModo("less")} rotulo={s.teclas.voltar} sempreComRotulo />
             </span>
           </p>
         ) : (
           <p className={estilos.lessTexto}>
             <span className={estilos.posicao}>
-              {slug}(1) {posicao.fim ? `(${s.fim})` : `${posicao.porcento}%`}
+              <span className={estilos.nomeDaPagina}>{slug}(1) </span>
+              <span className={busca ? estilos.porcentoNaBusca : undefined}>
+                {posicao.fim ? `(${s.fim})` : `${posicao.porcento}%`}{" "}
+              </span>
               <span className={estilos.resultado} aria-live="polite">
-                {resultadoDaBusca && ` ${resultadoDaBusca}`}
+                {resultadoDaBusca}
               </span>
             </span>
             <span className={estilos.teclas}>
-              <Tecla k="h" acao={() => setModo("ajuda")} rotulo={s.teclas.ajuda} />
+              <Tecla k="h" acao={() => setModo((m) => (m === "ajuda" ? "less" : "ajuda"))} rotulo={s.teclas.ajuda} />
               <Tecla k="/" acao={abrirBusca} rotulo={s.teclas.buscar} />
-              <Tecla k="t" acao={trocarTema} rotulo={s.teclas.tema} />
-              <Tecla k="l" acao={() => router.push(caminho(outro, slug))} rotulo={s.teclas.idioma} />
+              {buscando && (
+                <>
+                  <Tecla k="n" acao={() => proximo(1)} rotulo={s.teclas.proximo} />
+                  <Tecla k="N" acao={() => proximo(-1)} rotulo={s.teclas.anterior} />
+                </>
+              )}
+              <Tecla k="t" acao={trocarTema} rotulo={s.teclas.tema} recolher={buscando} />
+              <Tecla k="l" acao={() => router.push(caminho(outro, slug))} rotulo={s.teclas.idioma} recolher={buscando} />
               <Tecla k="q" acao={abrirPrompt} rotulo={s.teclas.sair} />
             </span>
           </p>
