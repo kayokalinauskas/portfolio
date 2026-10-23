@@ -37,22 +37,36 @@ npm run dev
 ```
 
 ```bash
-npm run check      # tipos, lint (ESLint com as regras do Next) e formatação (Prettier)
+npm run check      # tipos, lint (ESLint com as regras do Next), formatação (Prettier) e testes de unidade
 npm run format     # formata tudo com o Prettier
 npm run build      # build de produção
+npm run test:e2e   # testes no navegador, contra o build (na primeira vez: npx playwright install chromium)
 ```
 
-O GitHub Actions roda o `check` e o `build` a cada push e em cada pull request (`.github/workflows/ci.yml`). A Vercel publica o `master`. O Node é o 24 (`engines` no `package.json` e `.nvmrc`).
+### Testes
+
+- **Unidade** (Vitest, `tests/unidade`): o conteúdo nas duas línguas (as mesmas seções, os mesmos exemplos, referências que existem), a marcação dos textos e o shell do prompt (os comandos, o Tab e o histórico).
+- **Navegador** (Playwright, `tests/navegador`): no computador e num celular emulado, as oito páginas abrem, nada passa da largura em 320 px, e a ajuda, a busca e o prompt funcionam.
+
+O GitHub Actions roda tudo isso a cada push e em cada pull request (`.github/workflows/ci.yml`), e o Dependabot abre um pull request quando sai versão nova das dependências. A Vercel publica o `master`. O Node é o 24 (`engines` no `package.json` e `.nvmrc`).
 
 ## Onde mexer
 
-| O quê                                               | Onde                                                               |
-| --------------------------------------------------- | ------------------------------------------------------------------ |
-| Todo o texto, das quatro páginas e nas duas línguas | `content/manual.ts` (a marcação está explicada no topo do arquivo) |
-| Como uma página de manual é desenhada               | `components/Manual.tsx` e `components/manual.module.css`           |
-| A barra do `less`, as teclas, a busca e o prompt    | `components/Sessao.tsx`                                            |
-| Cores dos dois temas                                | `app/globals.css`                                                  |
-| Currículo                                           | `public/curriculo.pdf` e `public/resume.pdf`                       |
+| O quê                                                               | Onde                                                               |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Todo o texto, das quatro páginas e nas duas línguas                 | `content/manual.ts` (a marcação está explicada no topo do arquivo) |
+| Os comandos do prompt (`man`, `kayo`, `history`…), o Tab e as setas | `components/sessao/shell.ts`                                       |
+| Como uma página de manual é desenhada                               | `components/Manual.tsx` e `components/manual.module.css`           |
+| A barra do `less`, as teclas, a busca e a tela do prompt            | `components/Sessao.tsx` e `components/sessao/`                     |
+| Cores dos dois temas                                                | `app/globals.css`                                                  |
+| Currículo                                                           | `public/curriculo.pdf` e `public/resume.pdf`                       |
+
+### Acrescentar um projeto
+
+1. Ponha o nome em `PROJETOS` (`content/manual.ts`), por exemplo `"kayo-novo"`.
+2. Escreva a página em `projetosPt` e em `projetosEn`, com o `resumo` (a linha dele em COMANDOS). O TypeScript não compila sem as duas línguas.
+
+A sinopse da página principal, o item em COMANDOS, o VEJA TAMBÉM das outras páginas, o Tab do prompt, o sitemap, a página e a imagem de prévia saem disso sozinhos. Os testes avisam se as duas línguas ficarem com seções diferentes.
 
 Cada idioma tem o seu layout raiz (`app/(pt)` e `app/(en)`), para o `<html lang>` sair certo. Por isso o 404 ("No manual entry for…") fica em `app/global-not-found.tsx`.
 

@@ -28,8 +28,18 @@ export type Pagina = {
   secoes: Secao[];
 };
 
-export const PAGINAS = ["kayo", "kayo-ozamigos", "kayo-finalizadoras", "kayo-acelerato"] as const;
+// Um projeto é escrito uma vez só, nas duas línguas. A linha dele na SINOPSE, o item em
+// COMANDOS e o VEJA TAMBÉM das outras páginas saem desta lista: para acrescentar um
+// projeto, ponha o nome aqui e escreva a página dele em projetosPt e projetosEn (o
+// TypeScript não compila sem as duas).
+export const PROJETOS = ["kayo-ozamigos", "kayo-finalizadoras", "kayo-acelerato"] as const;
+export type Projeto = (typeof PROJETOS)[number];
+
+export const PAGINAS = ["kayo", ...PROJETOS] as const;
 export type Slug = (typeof PAGINAS)[number];
+
+// "resumo" é a explicação do projeto em COMANDOS, na página principal.
+type PaginaDeProjeto = Pagina & { resumo: string };
 
 export const EMAIL = "kalinauskas@live.com";
 export const GITHUB = "https://github.com/kayokalinauskas";
@@ -40,135 +50,38 @@ const OZAMIGOS_SITE = "https://kayokalinauskas.github.io/ozamigos/";
 const FINALIZADORAS_WEB = "https://kayokalinauskas.github.io/bluesoft-subfinalizadora/";
 const WEB_STORE = "https://chromewebstore.google.com/detail/acelerato-helper/lanlcaoldikialljjdbngbpelggnjmab";
 
+// "kayo {ozamigos | finalizadoras | acelerato}", com cada nome levando à página
+function sinopseDosProjetos(idioma: Idioma) {
+  const nomes = PROJETOS.map((p) => `[${p.slice("kayo-".length)}](${caminho(idioma, p)})`);
+  return `**kayo** {${nomes.join(" | ")}}`;
+}
+
+function comandos(projetos: Record<Projeto, PaginaDeProjeto>): Bloco[] {
+  return PROJETOS.map((p) => ({ tipo: "item", rotulo: `{${p}(1)}`, texto: projetos[p].resumo }));
+}
+
+// O VEJA TAMBÉM de cada projeto: a página principal e os outros projetos.
+function comVejaTambem(projetos: Record<Projeto, PaginaDeProjeto>, titulo: string) {
+  return Object.fromEntries(
+    PROJETOS.map((p) => {
+      const outras = ["kayo", ...PROJETOS.filter((x) => x !== p)].map((x) => `{${x}(1)}`).join(", ");
+      const { slug, titulo: tituloDaPagina, descricao, secoes } = projetos[p];
+      const vejaTambem: Secao = { titulo, blocos: [{ tipo: "texto", texto: outras }] };
+      return [p, { slug, titulo: tituloDaPagina, descricao, secoes: [...secoes, vejaTambem] }];
+    }),
+  ) as Record<Projeto, Pagina>;
+}
+
 export const CURRICULO: Record<Idioma, { arquivo: string; url: string }> = {
   pt: { arquivo: "curriculo.pdf", url: "/curriculo.pdf" },
   en: { arquivo: "resume.pdf", url: "/resume.pdf" },
 };
 
-const pt: Record<Slug, Pagina> = {
-  kayo: {
-    slug: "kayo",
-    titulo: "Kayo Kalinauskas, desenvolvedor full stack · kayo(1)",
-    descricao:
-      "Kayo Kalinauskas, desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP e integrações de APIs.",
-    secoes: [
-      { titulo: "NOME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, desenvolvedor full stack" }] },
-      {
-        titulo: "SINOPSE",
-        blocos: [
-          {
-            tipo: "sinopse",
-            linhas: [
-              "**kayo** {[ozamigos](/kayo-ozamigos) | [finalizadoras](/kayo-finalizadoras) | [acelerato](/kayo-acelerato)}",
-              `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL})}`,
-            ],
-          },
-        ],
-      },
-      {
-        titulo: "DESCRIÇÃO",
-        blocos: [
-          {
-            tipo: "texto",
-            texto:
-              "Desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP, suporte e integrações de APIs. Atualmente acompanha projetos de integração na Bluesoft e desenvolve projetos próprios de ponta a ponta.",
-          },
-          { tipo: "texto", texto: "Português nativo, inglês avançado. Fuso de São Paulo (UTC-3)." },
-        ],
-      },
-      {
-        titulo: "COMANDOS",
-        blocos: [
-          {
-            tipo: "item",
-            rotulo: "{kayo-ozamigos(1)}",
-            texto:
-              "Transmissão de tela de jogos entre amigos, com voz e chat. Vídeo P2P via WebRTC, servidor em Spring Boot, app em Electron e captura nativa em C#.",
-          },
-          {
-            tipo: "item",
-            rotulo: "{kayo-finalizadoras(1)}",
-            texto:
-              "Ferramenta interna da Bluesoft: mapeamentos em lote pela API REST do ERP, com as planilhas processadas num Web Worker.",
-          },
-          {
-            tipo: "item",
-            rotulo: "{kayo-acelerato(1)}",
-            texto: "Extensão do Chrome (Manifest V3) usada no atendimento da Bluesoft, com mais de 60 usuários.",
-          },
-        ],
-      },
-      {
-        titulo: "OPÇÕES",
-        blocos: [
-          {
-            tipo: "item",
-            rotulo: "**--java**, **--spring-boot**",
-            texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ.",
-          },
-          {
-            tipo: "item",
-            rotulo: "**--react**, **--typescript**",
-            texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright.",
-          },
-          { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL e Oracle; consultas para investigar incidentes em produção." },
-          {
-            tipo: "item",
-            rotulo: "**--integracoes**",
-            texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros.",
-          },
-        ],
-      },
-      {
-        titulo: "HISTÓRICO",
-        blocos: [
-          {
-            tipo: "campos",
-            linhas: [
-              [
-                "**2023-atual**",
-                "Analista de Suporte de API e Integrações, Bluesoft. Integrações com parceiros, do kick-off ao pós-release, e investigação de incidentes nas APIs do ERP.",
-              ],
-              [
-                "**2021-2023**",
-                "Desenvolvedor Full Stack, OCTO. React, Redux, Angular, C# e ASP.NET em um ERP com mais de 30 clientes.",
-              ],
-              ["**2020-2021**", "Líder de Suporte Técnico, OCTO."],
-              ["**2015-2019**", "Analista de Suporte Técnico, Hipertec Sistemas."],
-            ],
-          },
-        ],
-      },
-      {
-        titulo: "FORMAÇÃO",
-        blocos: [
-          {
-            tipo: "texto",
-            texto: "Bacharelado em Ciência da Computação, Universidade Anhembi Morumbi, conclusão prevista em 2027.",
-          },
-          { tipo: "texto", texto: "Cursos: Java Programming (Universidade de Helsinque), Ignite (Rocketseat) e CS50 (Harvard)." },
-        ],
-      },
-      {
-        titulo: "AUTOR",
-        blocos: [
-          { tipo: "texto", texto: "Kayo Kalinauskas." },
-          {
-            tipo: "campos",
-            linhas: [
-              ["e-mail", `@{mailto:${EMAIL}|${EMAIL}}`],
-              ["GitHub", `@{${GITHUB}|github.com/kayokalinauskas}`],
-              ["LinkedIn", `@{${LINKEDIN}|linkedin.com/in/kayokalinauskas}`],
-              ["currículo", "@{/curriculo.pdf|kalinauskas.dev/curriculo.pdf}"],
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
+const projetosPt: Record<Projeto, PaginaDeProjeto> = {
   "kayo-ozamigos": {
     slug: "kayo-ozamigos",
+    resumo:
+      "Transmissão de tela de jogos entre amigos, com voz e chat. Vídeo P2P via WebRTC, servidor em Spring Boot, app em Electron e captura nativa em C#.",
     titulo: "Ozamigos: transmissão de tela entre amigos · kayo-ozamigos(1)",
     descricao:
       "Ozamigos: transmissão de tela de jogos entre amigos, com voz e chat. WebRTC peer-to-peer, Spring Boot, React, Electron e captura nativa em C#.",
@@ -281,12 +194,13 @@ const pt: Record<Slug, Pagina> = {
       },
       { titulo: "SITE", blocos: [{ tipo: "texto", texto: `@{${OZAMIGOS_SITE}}` }] },
       { titulo: "REPOSITÓRIO", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/ozamigos}` }] },
-      { titulo: "VEJA TAMBÉM", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-finalizadoras(1)}, {kayo-acelerato(1)}" }] },
     ],
   },
 
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
+    resumo:
+      "Ferramenta interna da Bluesoft: mapeamentos em lote pela API REST do ERP, com as planilhas processadas num Web Worker.",
     titulo: "Mapeamento de Finalizadoras pela API do ERP Bluesoft · kayo-finalizadoras(1)",
     descricao: "Mapeamento de Finalizadoras: ferramenta interna da Bluesoft para mapeamentos em lote pela API REST do ERP.",
     secoes: [
@@ -356,12 +270,12 @@ const pt: Record<Slug, Pagina> = {
         ],
       },
       { titulo: "REPOSITÓRIO", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/bluesoft-subfinalizadora}` }] },
-      { titulo: "VEJA TAMBÉM", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-acelerato(1)}" }] },
     ],
   },
 
   "kayo-acelerato": {
     slug: "kayo-acelerato",
+    resumo: "Extensão do Chrome (Manifest V3) usada no atendimento da Bluesoft, com mais de 60 usuários.",
     titulo: "Acelerato Helper, extensão do Chrome · kayo-acelerato(1)",
     descricao:
       "Acelerato Helper: extensão do Chrome usada por mais de 60 pessoas no atendimento da Bluesoft. Abre um chamado pelo número e evita perder comentários.",
@@ -417,130 +331,112 @@ const pt: Record<Slug, Pagina> = {
           { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
         ],
       },
-      { titulo: "VEJA TAMBÉM", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-finalizadoras(1)}" }] },
     ],
   },
 };
 
-const en: Record<Slug, Pagina> = {
-  kayo: {
-    slug: "kayo",
-    titulo: "Kayo Kalinauskas, full stack developer · kayo(1)",
-    descricao:
-      "Kayo Kalinauskas, full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems and API integrations.",
-    secoes: [
-      { titulo: "NAME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, full stack developer" }] },
-      {
-        titulo: "SYNOPSIS",
-        blocos: [
-          {
-            tipo: "sinopse",
-            linhas: [
-              "**kayo** {[ozamigos](/en/kayo-ozamigos) | [finalizadoras](/en/kayo-finalizadoras) | [acelerato](/en/kayo-acelerato)}",
-              `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL})}`,
+const kayoPt: Pagina = {
+  slug: "kayo",
+  titulo: "Kayo Kalinauskas, desenvolvedor full stack · kayo(1)",
+  descricao:
+    "Kayo Kalinauskas, desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP e integrações de APIs.",
+  secoes: [
+    { titulo: "NOME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, desenvolvedor full stack" }] },
+    {
+      titulo: "SINOPSE",
+      blocos: [
+        {
+          tipo: "sinopse",
+          linhas: [sinopseDosProjetos("pt"), `**kayo** {[--curriculo](/curriculo.pdf) | [--email](mailto:${EMAIL})}`],
+        },
+      ],
+    },
+    {
+      titulo: "DESCRIÇÃO",
+      blocos: [
+        {
+          tipo: "texto",
+          texto:
+            "Desenvolvedor full stack com Java, Spring Boot, React e TypeScript, e dez anos de experiência em ERP, suporte e integrações de APIs. Atualmente acompanha projetos de integração na Bluesoft e desenvolve projetos próprios de ponta a ponta.",
+        },
+        { tipo: "texto", texto: "Português nativo, inglês avançado. Fuso de São Paulo (UTC-3)." },
+      ],
+    },
+    { titulo: "COMANDOS", blocos: comandos(projetosPt) },
+    {
+      titulo: "OPÇÕES",
+      blocos: [
+        {
+          tipo: "item",
+          rotulo: "**--java**, **--spring-boot**",
+          texto: "APIs REST e WebSocket, JPA/Hibernate e Maven; testes com JUnit e AssertJ.",
+        },
+        {
+          tipo: "item",
+          rotulo: "**--react**, **--typescript**",
+          texto: "React, Next.js, Angular e Vite; testes com Vitest, Jest e Playwright.",
+        },
+        { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL e Oracle; consultas para investigar incidentes em produção." },
+        {
+          tipo: "item",
+          rotulo: "**--integracoes**",
+          texto: "REST e SOAP, OAuth 2.0, JWT e webhooks; onboarding técnico de parceiros.",
+        },
+      ],
+    },
+    {
+      titulo: "HISTÓRICO",
+      blocos: [
+        {
+          tipo: "campos",
+          linhas: [
+            [
+              "**2023-atual**",
+              "Analista de Suporte de API e Integrações, Bluesoft. Integrações com parceiros, do kick-off ao pós-release, e investigação de incidentes nas APIs do ERP.",
             ],
-          },
-        ],
-      },
-      {
-        titulo: "DESCRIPTION",
-        blocos: [
-          {
-            tipo: "texto",
-            texto:
-              "Full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems, support and API integrations. Currently supports integration projects at Bluesoft and builds personal projects end to end.",
-          },
-          { tipo: "texto", texto: "Native Portuguese, advanced English. São Paulo time zone (UTC-3)." },
-        ],
-      },
-      {
-        titulo: "COMMANDS",
-        blocos: [
-          {
-            tipo: "item",
-            rotulo: "{kayo-ozamigos(1)}",
-            texto:
-              "Game screen sharing between friends, with voice and chat. P2P video over WebRTC, a Spring Boot server, an Electron app and native capture in C#.",
-          },
-          {
-            tipo: "item",
-            rotulo: "{kayo-finalizadoras(1)}",
-            texto: "Internal tool at Bluesoft: bulk mappings through the ERP REST API, with spreadsheets parsed in a Web Worker.",
-          },
-          {
-            tipo: "item",
-            rotulo: "{kayo-acelerato(1)}",
-            texto: "Chrome extension (Manifest V3) used by the Bluesoft support team, with 60+ users.",
-          },
-        ],
-      },
-      {
-        titulo: "OPTIONS",
-        blocos: [
-          {
-            tipo: "item",
-            rotulo: "**--java**, **--spring-boot**",
-            texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ.",
-          },
-          {
-            tipo: "item",
-            rotulo: "**--react**, **--typescript**",
-            texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright.",
-          },
-          { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL and Oracle; queries to investigate production incidents." },
-          {
-            tipo: "item",
-            rotulo: "**--integrations**",
-            texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding.",
-          },
-        ],
-      },
-      {
-        titulo: "HISTORY",
-        blocos: [
-          {
-            tipo: "campos",
-            linhas: [
-              [
-                "**2023-present**",
-                "API and Integrations Support Analyst, Bluesoft. Partner integrations from kick-off to post-release, and incident investigation in the ERP APIs.",
-              ],
-              ["**2021-2023**", "Full Stack Developer, OCTO. React, Redux, Angular, C# and ASP.NET on an ERP with 30+ clients."],
-              ["**2020-2021**", "Technical Support Lead, OCTO."],
-              ["**2015-2019**", "Technical Support Analyst, Hipertec Sistemas."],
+            [
+              "**2021-2023**",
+              "Desenvolvedor Full Stack, OCTO. React, Redux, Angular, C# e ASP.NET em um ERP com mais de 30 clientes.",
             ],
-          },
-        ],
-      },
-      {
-        titulo: "EDUCATION",
-        blocos: [
-          {
-            tipo: "texto",
-            texto: "B.S. in Computer Science, Anhembi Morumbi University, expected 2027.",
-          },
-          { tipo: "texto", texto: "Courses: Java Programming (University of Helsinki), Ignite (Rocketseat) and CS50 (Harvard)." },
-        ],
-      },
-      {
-        titulo: "AUTHOR",
-        blocos: [
-          { tipo: "texto", texto: "Kayo Kalinauskas." },
-          {
-            tipo: "campos",
-            linhas: [
-              ["email", `@{mailto:${EMAIL}|${EMAIL}}`],
-              ["GitHub", `@{${GITHUB}|github.com/kayokalinauskas}`],
-              ["LinkedIn", `@{${LINKEDIN}|linkedin.com/in/kayokalinauskas}`],
-              ["resume", "@{/resume.pdf|kalinauskas.dev/resume.pdf}"],
-            ],
-          },
-        ],
-      },
-    ],
-  },
+            ["**2020-2021**", "Líder de Suporte Técnico, OCTO."],
+            ["**2015-2019**", "Analista de Suporte Técnico, Hipertec Sistemas."],
+          ],
+        },
+      ],
+    },
+    {
+      titulo: "FORMAÇÃO",
+      blocos: [
+        {
+          tipo: "texto",
+          texto: "Bacharelado em Ciência da Computação, Universidade Anhembi Morumbi, conclusão prevista em 2027.",
+        },
+        { tipo: "texto", texto: "Cursos: Java Programming (Universidade de Helsinque), Ignite (Rocketseat) e CS50 (Harvard)." },
+      ],
+    },
+    {
+      titulo: "AUTOR",
+      blocos: [
+        { tipo: "texto", texto: "Kayo Kalinauskas." },
+        {
+          tipo: "campos",
+          linhas: [
+            ["e-mail", `@{mailto:${EMAIL}|${EMAIL}}`],
+            ["GitHub", `@{${GITHUB}|github.com/kayokalinauskas}`],
+            ["LinkedIn", `@{${LINKEDIN}|linkedin.com/in/kayokalinauskas}`],
+            ["currículo", "@{/curriculo.pdf|kalinauskas.dev/curriculo.pdf}"],
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+const projetosEn: Record<Projeto, PaginaDeProjeto> = {
   "kayo-ozamigos": {
     slug: "kayo-ozamigos",
+    resumo:
+      "Game screen sharing between friends, with voice and chat. P2P video over WebRTC, a Spring Boot server, an Electron app and native capture in C#.",
     titulo: "Ozamigos: screen sharing between friends · kayo-ozamigos(1)",
     descricao:
       "Ozamigos: game screen sharing between friends, with voice and chat. Peer-to-peer WebRTC, Spring Boot, React, Electron and native capture in C#.",
@@ -654,12 +550,12 @@ const en: Record<Slug, Pagina> = {
       },
       { titulo: "WEBSITE", blocos: [{ tipo: "texto", texto: `@{${OZAMIGOS_SITE}}` }] },
       { titulo: "REPOSITORY", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/ozamigos}` }] },
-      { titulo: "SEE ALSO", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-finalizadoras(1)}, {kayo-acelerato(1)}" }] },
     ],
   },
 
   "kayo-finalizadoras": {
     slug: "kayo-finalizadoras",
+    resumo: "Internal tool at Bluesoft: bulk mappings through the ERP REST API, with spreadsheets parsed in a Web Worker.",
     titulo: "Payment method mapping through the Bluesoft ERP API · kayo-finalizadoras(1)",
     descricao: "Payment method mapping: an internal Bluesoft tool for bulk mappings through the ERP REST API.",
     secoes: [
@@ -724,12 +620,12 @@ const en: Record<Slug, Pagina> = {
         ],
       },
       { titulo: "REPOSITORY", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/bluesoft-subfinalizadora}` }] },
-      { titulo: "SEE ALSO", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-acelerato(1)}" }] },
     ],
   },
 
   "kayo-acelerato": {
     slug: "kayo-acelerato",
+    resumo: "Chrome extension (Manifest V3) used by the Bluesoft support team, with 60+ users.",
     titulo: "Acelerato Helper, a Chrome extension · kayo-acelerato(1)",
     descricao:
       "Acelerato Helper: a Chrome extension used by 60+ people on the Bluesoft support team. It opens a ticket by its number and prevents lost comments.",
@@ -790,12 +686,108 @@ const en: Record<Slug, Pagina> = {
           { tipo: "texto", texto: `@{${WEB_STORE}|Chrome Web Store}` },
         ],
       },
-      { titulo: "SEE ALSO", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-ozamigos(1)}, {kayo-finalizadoras(1)}" }] },
     ],
   },
 };
 
-export const MANUAL: Record<Idioma, Record<Slug, Pagina>> = { pt, en };
+const kayoEn: Pagina = {
+  slug: "kayo",
+  titulo: "Kayo Kalinauskas, full stack developer · kayo(1)",
+  descricao:
+    "Kayo Kalinauskas, full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems and API integrations.",
+  secoes: [
+    { titulo: "NAME", blocos: [{ tipo: "texto", texto: "**kayo** - Kayo Kalinauskas, full stack developer" }] },
+    {
+      titulo: "SYNOPSIS",
+      blocos: [
+        {
+          tipo: "sinopse",
+          linhas: [sinopseDosProjetos("en"), `**kayo** {[--resume](/resume.pdf) | [--email](mailto:${EMAIL})}`],
+        },
+      ],
+    },
+    {
+      titulo: "DESCRIPTION",
+      blocos: [
+        {
+          tipo: "texto",
+          texto:
+            "Full stack developer working with Java, Spring Boot, React and TypeScript, with ten years of experience in ERP systems, support and API integrations. Currently supports integration projects at Bluesoft and builds personal projects end to end.",
+        },
+        { tipo: "texto", texto: "Native Portuguese, advanced English. São Paulo time zone (UTC-3)." },
+      ],
+    },
+    { titulo: "COMMANDS", blocos: comandos(projetosEn) },
+    {
+      titulo: "OPTIONS",
+      blocos: [
+        {
+          tipo: "item",
+          rotulo: "**--java**, **--spring-boot**",
+          texto: "REST and WebSocket APIs, JPA/Hibernate and Maven; tests with JUnit and AssertJ.",
+        },
+        {
+          tipo: "item",
+          rotulo: "**--react**, **--typescript**",
+          texto: "React, Next.js, Angular and Vite; tests with Vitest, Jest and Playwright.",
+        },
+        { tipo: "item", rotulo: "**--sql**", texto: "PostgreSQL and Oracle; queries to investigate production incidents." },
+        {
+          tipo: "item",
+          rotulo: "**--integrations**",
+          texto: "REST and SOAP, OAuth 2.0, JWT and webhooks; partner technical onboarding.",
+        },
+      ],
+    },
+    {
+      titulo: "HISTORY",
+      blocos: [
+        {
+          tipo: "campos",
+          linhas: [
+            [
+              "**2023-present**",
+              "API and Integrations Support Analyst, Bluesoft. Partner integrations from kick-off to post-release, and incident investigation in the ERP APIs.",
+            ],
+            ["**2021-2023**", "Full Stack Developer, OCTO. React, Redux, Angular, C# and ASP.NET on an ERP with 30+ clients."],
+            ["**2020-2021**", "Technical Support Lead, OCTO."],
+            ["**2015-2019**", "Technical Support Analyst, Hipertec Sistemas."],
+          ],
+        },
+      ],
+    },
+    {
+      titulo: "EDUCATION",
+      blocos: [
+        {
+          tipo: "texto",
+          texto: "B.S. in Computer Science, Anhembi Morumbi University, expected 2027.",
+        },
+        { tipo: "texto", texto: "Courses: Java Programming (University of Helsinki), Ignite (Rocketseat) and CS50 (Harvard)." },
+      ],
+    },
+    {
+      titulo: "AUTHOR",
+      blocos: [
+        { tipo: "texto", texto: "Kayo Kalinauskas." },
+        {
+          tipo: "campos",
+          linhas: [
+            ["email", `@{mailto:${EMAIL}|${EMAIL}}`],
+            ["GitHub", `@{${GITHUB}|github.com/kayokalinauskas}`],
+            ["LinkedIn", `@{${LINKEDIN}|linkedin.com/in/kayokalinauskas}`],
+            ["resume", "@{/resume.pdf|kalinauskas.dev/resume.pdf}"],
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const MANUAL: Record<Idioma, Record<Slug, Pagina>> = {
+  pt: { kayo: kayoPt, ...comVejaTambem(projetosPt, "VEJA TAMBÉM") },
+  en: { kayo: kayoEn, ...comVejaTambem(projetosEn, "SEE ALSO") },
+};
 
 // Os textos da própria sessão de terminal (barra do less, ajuda, prompt).
 export const SESSAO = {
@@ -816,6 +808,7 @@ export const SESSAO = {
     },
     fim: "fim",
     pularParaOConteudo: "Pular para o conteúdo",
+    dicaDoPrompt: "Digite help para ver os comandos, ou man kayo para voltar.",
     padrao: "Padrão",
     resultados: (n: number) => (n === 1 ? "1 resultado" : `${n} resultados`),
     semResultados: "Padrão não encontrado",
@@ -875,6 +868,7 @@ export const SESSAO = {
     },
     fim: "END",
     pularParaOConteudo: "Skip to content",
+    dicaDoPrompt: "Type help to see the commands, or man kayo to go back.",
     padrao: "Pattern",
     resultados: (n: number) => (n === 1 ? "1 match" : `${n} matches`),
     semResultados: "Pattern not found",

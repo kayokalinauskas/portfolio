@@ -11,6 +11,7 @@ import {
   type Slug,
 } from "@/content/manual";
 import { SITE } from "./metadados";
+import { ancora } from "./ancora";
 import { Texto, semMarcacao } from "./Texto";
 import Sessao from "./Sessao";
 import estilos from "./manual.module.css";
@@ -85,16 +86,6 @@ function BlocoDoManual({ bloco, idioma }: { bloco: Bloco; idioma: Idioma }) {
       );
     }
   }
-}
-
-// O endereço de uma seção: "VEJA TAMBÉM" vira "veja-tambem".
-function ancora(titulo: string) {
-  return titulo
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 // Os dados da pessoa para os buscadores (schema.org), só na página principal.

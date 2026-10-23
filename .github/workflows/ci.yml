@@ -15,7 +15,7 @@ concurrency:
 jobs:
   verificar:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,5 +23,15 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # tipos, lint, formatação e testes de unidade
       - run: npm run check
       - run: npm run build
+      # os testes no navegador rodam contra o build de produção
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-do-playwright
+          path: test-results/
+          retention-days: 7

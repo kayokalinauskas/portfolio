@@ -11,174 +11,56 @@ import {
   type KeyboardEvent as TeclaDoReact,
   type ReactNode,
 } from "react";
-import { caminho, EMAIL, MANUAL, PAGINAS, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
+import { caminho, SESSAO, type Idioma, type Slug } from "@/content/manual";
 import estilos from "./manual.module.css";
+import { lerLogin, pintarBarraDoNavegador, procurar, realcar, semMudancas, trocarTema } from "./sessao/navegador";
+import {
+  andarNoHistorico,
+  completar,
+  completaveis,
+  historico as historicoDaVisita,
+  interpretar,
+  lembrar,
+  type Linha,
+  type NoHistorico,
+} from "./sessao/shell";
+import Tecla from "./sessao/Tecla";
+
+// A sessão de terminal em volta do manual: o login, a barra do less com as teclas, a
+// busca, a ajuda e o prompt do q. O que o prompt entende fica em sessao/shell.ts.
 
 type Modo = "less" | "busca" | "ajuda" | "prompt";
-type Saida = { comando: string; linhas: ReactNode[] };
+type Saida = { comando: string; linhas: Linha[] };
 
-// "Thu Oct 22 09:14:07", o formato do macOS
-function formatarLogin(data: Date) {
-  const p = Object.fromEntries(
-    new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-      .formatToParts(data)
-      .map((x) => [x.type, x.value]),
-  );
-  return `${p.weekday} ${p.month} ${p.day} ${p.hour}:${p.minute}:${p.second}`;
-}
-
-// O último acesso é lido e regravado uma vez por carregamento da página; navegar entre as
-// páginas do manual não conta como um login novo.
-let ultimoLogin: string | null = null;
-function lerLogin() {
-  if (ultimoLogin === null) {
-    let anterior: Date | null = null;
-    try {
-      const guardado = localStorage.getItem("ultimo-acesso");
-      if (guardado) anterior = new Date(guardado);
-      localStorage.setItem("ultimo-acesso", new Date().toISOString());
-    } catch {
-      // sem armazenamento: mostra a hora de agora
-    }
-    ultimoLogin = formatarLogin(anterior && !isNaN(+anterior) ? anterior : new Date());
+function LinhaDaSaida({ linha }: { linha: Linha }) {
+  if (typeof linha === "string") return <p>{linha}</p>;
+  if ("preservado" in linha) return <p className={estilos.preservado}>{linha.preservado}</p>;
+  if ("lista" in linha) {
+    return (
+      <p className={estilos.ls}>
+        {linha.lista.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
+      </p>
+    );
   }
-  return ultimoLogin;
-}
-const semMudancas = () => () => {};
-
-// A barra do navegador no celular segue o tema escolhido aqui, não só o do sistema.
-function pintarBarraDoNavegador() {
-  const fundo = getComputedStyle(document.documentElement).getPropertyValue("--fundo").trim();
-  if (!fundo) return;
-  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", fundo));
-}
-
-// "Fri Oct 23 15:49:12 GMT-3 2026", o formato do date no terminal
-function formatarData(data: Date) {
-  const p = Object.fromEntries(
-    new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-      timeZoneName: "short",
-      year: "numeric",
-    })
-      .formatToParts(data)
-      .map((x) => [x.type, x.value]),
-  );
-  return `${p.weekday} ${p.month} ${p.day.padStart(2)} ${p.hour}:${p.minute}:${p.second} ${p.timeZoneName} ${p.year}`;
-}
-
-// O uptime conta desde janeiro de 2015, o primeiro emprego na área (Hipertec Sistemas).
-const PRIMEIRO_DIA = new Date(2015, 0, 1);
-
-function formatarUptime(agora: Date) {
-  const dias = Math.floor((agora.getTime() - PRIMEIRO_DIA.getTime()) / 86_400_000);
-  const hora = agora.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return `${hora}  up ${dias} days, 1 user`;
-}
-
-// Os comandos já digitados no prompt, como o histórico de um shell: valem para a visita
-// inteira, também depois de abrir outra página do manual.
-const comandosAnteriores: string[] = [];
-
-type Exemplo = Extract<Bloco, { tipo: "exemplo" }>;
-
-// Os comandos da seção EXEMPLOS de todas as páginas: o prompt executa os mesmos.
-function exemplosDe(idioma: Idioma): Exemplo[] {
-  return Object.values(MANUAL[idioma]).flatMap((p) =>
-    p.secoes.flatMap((secao) => secao.blocos.filter((b): b is Exemplo => b.tipo === "exemplo")),
-  );
-}
-
-// O começo que todas as opções têm em comum: o que o Tab pode completar sem escolher.
-function prefixoComum(opcoes: string[]) {
-  return opcoes.reduce((prefixo, opcao) => {
-    let i = 0;
-    while (i < prefixo.length && prefixo[i] === opcao[i]) i++;
-    return prefixo.slice(0, i);
-  });
-}
-
-function trocarTema() {
-  const raiz = document.documentElement;
-  const escuroAgora = raiz.dataset.theme
-    ? raiz.dataset.theme === "dark"
-    : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  raiz.dataset.theme = escuroAgora ? "light" : "dark";
-  pintarBarraDoNavegador();
-  try {
-    localStorage.setItem("tema", escuroAgora ? "claro" : "escuro");
-  } catch {
-    // sem armazenamento (janela privada): vale até recarregar
-  }
-}
-
-type Realce = { set(nome: string, valor: unknown): void; delete(nome: string): void };
-function registroDeRealces(): Realce | null {
-  const css = globalThis.CSS as unknown as { highlights?: Realce } | undefined;
-  return css?.highlights && "Highlight" in globalThis ? css.highlights : null;
-}
-function realcar(nome: string, faixas: Range[]) {
-  const registro = registroDeRealces();
-  if (!registro) return;
-  const Highlight = (globalThis as unknown as { Highlight: new (...r: Range[]) => unknown }).Highlight;
-  if (faixas.length) registro.set(nome, new Highlight(...faixas));
-  else registro.delete(nome);
-}
-
-function procurar(raiz: HTMLElement, termo: string) {
-  const faixas: Range[] = [];
-  const alvo = termo.toLocaleLowerCase();
-  const andar = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
-  for (let no = andar.nextNode(); no; no = andar.nextNode()) {
-    const texto = (no.textContent ?? "").toLocaleLowerCase();
-    let i = texto.indexOf(alvo);
-    while (i !== -1) {
-      const faixa = document.createRange();
-      faixa.setStart(no, i);
-      faixa.setEnd(no, i + alvo.length);
-      faixas.push(faixa);
-      i = texto.indexOf(alvo, i + alvo.length);
-    }
-  }
-  return faixas;
-}
-
-// A tecla e o que ela faz, num botão só: no celular, é o jeito de usar o manual.
-function Tecla({
-  k,
-  acao,
-  rotulo,
-  recolher,
-  sempreComRotulo,
-}: {
-  k: string;
-  acao: () => void;
-  rotulo: string;
-  recolher?: boolean;
-  sempreComRotulo?: boolean;
-}) {
-  const classes = [estilos.tecla, recolher && estilos.recolhida].filter(Boolean).join(" ");
   return (
-    <button type="button" className={classes} onClick={acao}>
-      <b>{k}</b>
-      <span className={sempreComRotulo ? undefined : estilos.rotuloDaTecla}> {rotulo}</span>
-    </button>
+    <>
+      {linha.tabela.map(([c, d]) => (
+        <p key={c} className={estilos.ajudaLinha}>
+          <b>{c}</b>
+          <span>{d}</span>
+        </p>
+      ))}
+    </>
   );
 }
+
+const Prompt = () => (
+  <>
+    <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %
+  </>
+);
 
 export default function Sessao({
   idioma,
@@ -200,22 +82,16 @@ export default function Sessao({
   const [posicao, setPosicao] = useState({ porcento: 0, fim: false });
   const [termo, setTermo] = useState("");
   const [busca, setBusca] = useState<{ faixas: Range[]; atual: number } | null>(null);
-  const [historico, setHistorico] = useState<Saida[]>([]);
+  const [saidas, setSaidas] = useState<Saida[]>([]);
   const [entrada, setEntrada] = useState("");
   const [sugestoes, setSugestoes] = useState<string[]>([]);
-  const noHistorico = useRef<number | null>(null);
-  const rascunho = useRef("");
+  const noHistorico = useRef<NoHistorico>({ posicao: null, rascunho: "" });
 
   const entradaRef = useRef<HTMLInputElement>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
   const fimDoPrompt = useRef<HTMLDivElement>(null);
   const painelDaAjuda = useRef<HTMLDivElement>(null);
   const barra = useRef<HTMLDivElement>(null);
-
-  const alturaDaLinha = () => {
-    const manual = document.getElementById("manual");
-    return manual ? parseFloat(getComputedStyle(manual).lineHeight) || 24 : 24;
-  };
 
   useEffect(pintarBarraDoNavegador, []);
 
@@ -307,6 +183,10 @@ export default function Sessao({
 
   // As teclas do less.
   useEffect(() => {
+    const alturaDaLinha = () => {
+      const manual = document.getElementById("manual");
+      return manual ? parseFloat(getComputedStyle(manual).lineHeight) || 24 : 24;
+    };
     const tecla = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       // O esc vale até com o cursor no prompt: é o jeito de voltar ao manual.
@@ -365,178 +245,66 @@ export default function Sessao({
 
   useEffect(() => {
     fimDoPrompt.current?.scrollIntoView({ block: "nearest" });
-  }, [historico]);
+  }, [saidas]);
 
-  // Os comandos do prompt que aparece depois do q.
+  // O Enter no prompt: o shell responde, e aqui a resposta vira tela e ação.
   const executar = (e: FormEvent) => {
     e.preventDefault();
     const comando = entrada.trim().replace(/\s+/g, " ");
     setEntrada("");
     setSugestoes([]);
-    noHistorico.current = null;
+    noHistorico.current = { posicao: null, rascunho: "" };
     if (!comando) return;
-    if (comandosAnteriores.at(-1) !== comando) comandosAnteriores.push(comando);
-    const [nome, ...args] = comando.split(/\s+/);
-    const responder = (...linhas: ReactNode[]) => setHistorico((h) => [...h, { comando, linhas }]);
-    const paginas = PAGINAS as readonly string[];
+    const { linhas, efeito } = interpretar(comando, {
+      idioma,
+      curriculo,
+      historico: lembrar(comando),
+      agora: new Date(),
+    });
 
-    const abrirManual = (alvo: string) => {
-      setHistorico([]);
-      setModo("less");
-      if (alvo === slug) window.scrollTo({ top: 0 });
-      else router.push(caminho(idioma, alvo));
-    };
-    const abrir = (endereco: string) => {
-      responder();
-      if (/^https?:/.test(endereco)) window.open(endereco, "_blank", "noopener,noreferrer");
-      else window.location.href = endereco;
-    };
-
-    switch (nome) {
-      case "kayo": {
-        const exemplo = exemplosDe(idioma).find((x) => x.comando === comando);
-        if (exemplo?.abre) return abrir(exemplo.abre);
-        if (exemplo) return responder(exemplo.texto);
-        if (!args.length) return abrirManual("kayo");
-        if (args[0] === "--curriculo" || args[0] === "--resume") return abrir(curriculo.url);
-        if (args[0] === "--email") return abrir(`mailto:${EMAIL}`);
-        if (paginas.includes(`kayo-${args[0]}`) && args.length === 1) return abrirManual(`kayo-${args[0]}`);
-        return responder(s.usoDoKayo);
-      }
-      case "man": {
-        const alvo = args[0];
-        if (!alvo) return responder(s.qualPagina);
-        if (!paginas.includes(alvo)) return responder(s.semManual(alvo));
-        return abrirManual(alvo);
-      }
-      case "ls":
-        return responder(
-          <span className={estilos.ls}>
-            {[...paginas.map((p) => `${p}.1`), curriculo.arquivo].map((p) => (
-              <span key={p}>{p}</span>
-            ))}
-          </span>,
-        );
-      case "open":
-      case "xdg-open":
-        if (args[0] === curriculo.arquivo || args[0] === `~/${curriculo.arquivo}`) {
-          responder();
-          window.location.href = curriculo.url;
-          return;
-        }
-        return responder(s.semArquivo(args[0] ?? ""));
-      case "mail":
-      case "email":
-        responder();
-        window.location.href = `mailto:${EMAIL}`;
+    switch (efeito?.tipo) {
+      case "manual":
+        setSaidas([]);
+        setModo("less");
+        if (efeito.pagina === slug) window.scrollTo({ top: 0 });
+        else router.push(caminho(idioma, efeito.pagina));
         return;
-      case "whoami":
-        return responder("Kayo Kalinauskas");
-      case "pwd":
-        return responder("/Users/kayo");
-      case "date":
-        return responder(formatarData(new Date()));
-      case "uptime":
-        return responder(<span className={estilos.preservado}>{formatarUptime(new Date())}</span>);
-      case "history":
-        return responder(
-          ...comandosAnteriores.map((c, i) => (
-            <span key={i} className={estilos.preservado}>
-              {`${String(i + 1).padStart(5)}  ${c}`}
-            </span>
-          )),
-        );
-      case "sudo":
-        // a resposta de verdade do sudo para quem não está no sudoers
-        return responder("kayo is not in the sudoers file. This incident will be reported.");
-      case "theme":
-        trocarTema();
-        return responder();
-      case "lang":
-        if (args[0] === "pt" || args[0] === "en") {
-          router.push(caminho(args[0], slug));
-          return responder();
-        }
-        return responder(s.usoDoLang);
-      case "clear":
-        setHistorico([]);
+      case "limpar":
+        setSaidas([]);
         return;
-      case "help":
-        return responder(
-          ...s.ajudaPrompt.map(([c, d]) => (
-            <span key={c} className={estilos.ajudaLinha}>
-              <b>{c}</b>
-              <span>{d}</span>
-            </span>
-          )),
-        );
-      case "exit":
-      case "logout":
-        setHistorico([]);
+      case "sair":
+        setSaidas([]);
         setModo("less");
         return;
-      default:
-        return responder(s.naoEncontrado(nome));
+    }
+    setSaidas((h) => [...h, { comando, linhas }]);
+    if (efeito?.tipo === "tema") trocarTema();
+    if (efeito?.tipo === "idioma") router.push(caminho(efeito.idioma, slug));
+    if (efeito?.tipo === "abrir") {
+      if (/^https?:/.test(efeito.endereco)) window.open(efeito.endereco, "_blank", "noopener,noreferrer");
+      else window.location.href = efeito.endereco;
     }
   };
-
-  // Tudo o que o prompt entende, inteiro, para o Tab completar.
-  const completaveis = [
-    "help",
-    "ls",
-    "clear",
-    "exit",
-    "mail",
-    "theme",
-    "whoami",
-    "pwd",
-    "date",
-    "uptime",
-    "history",
-    `open ${curriculo.arquivo}`,
-    "lang pt",
-    "lang en",
-    ...PAGINAS.map((p) => `man ${p}`),
-    "kayo",
-    `kayo ${idioma === "pt" ? "--curriculo" : "--resume"}`,
-    "kayo --email",
-    ...PAGINAS.filter((p) => p !== "kayo").map((p) => `kayo ${p.slice("kayo-".length)}`),
-    ...exemplosDe(idioma).map((x) => x.comando),
-  ];
 
   // Tab completa, como no zsh; ↑ e ↓ andam pelos comandos anteriores.
   const teclaNoPrompt = (e: TeclaDoReact<HTMLInputElement>) => {
     if (e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
-      const opcoes = [...new Set(completaveis.filter((c) => c.startsWith(entrada) && c !== entrada.trimEnd()))];
-      if (!opcoes.length) return;
-      const comum = prefixoComum(opcoes);
-      if (comum.length > entrada.length) {
-        setEntrada(opcoes.length === 1 ? `${comum} ` : comum);
+      const resultado = completar(entrada, completaveis(idioma, curriculo.arquivo));
+      if (resultado && "entrada" in resultado) {
+        setEntrada(resultado.entrada);
         setSugestoes([]);
-      } else {
-        // sem nada a completar sozinho, mostra as opções (só a palavra que muda)
-        const inicio = entrada.lastIndexOf(" ") + 1;
-        setSugestoes([...new Set(opcoes.map((o) => o.slice(inicio).split(" ")[0]))]);
+      } else if (resultado) {
+        setSugestoes(resultado.sugestoes);
       }
       return;
     }
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      if (!comandosAnteriores.length) return;
+      const passo = andarNoHistorico(historicoDaVisita(), noHistorico.current, e.key === "ArrowUp" ? -1 : 1, entrada);
+      if (!passo) return;
       e.preventDefault();
-      if (noHistorico.current === null) {
-        if (e.key === "ArrowDown") return;
-        rascunho.current = entrada;
-        noHistorico.current = comandosAnteriores.length;
-      }
-      const proximo = noHistorico.current + (e.key === "ArrowUp" ? -1 : 1);
-      if (proximo >= comandosAnteriores.length) {
-        noHistorico.current = null;
-        setEntrada(rascunho.current);
-      } else {
-        noHistorico.current = Math.max(0, proximo);
-        setEntrada(comandosAnteriores[noHistorico.current]);
-      }
+      noHistorico.current = passo.estado;
+      setEntrada(passo.entrada);
       setSugestoes([]);
     }
   };
@@ -568,7 +336,7 @@ export default function Sessao({
           Last login: <span className={estilos.login}>{login}</span> on ttys001
         </p>
         <p>
-          <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> % man {slug}
+          <Prompt /> man {slug}
         </p>
       </div>
 
@@ -589,34 +357,21 @@ export default function Sessao({
 
       {modo === "prompt" && (
         <div className={estilos.painel} role="region" aria-label="shell">
-          {historico.map((saida, i) => (
+          {saidas.map((saida, i) => (
             <div key={i}>
               <p>
-                <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
-                {saida.comando}
+                <Prompt /> {saida.comando}
               </p>
               {saida.linhas.map((linha, j) => (
-                <p key={j}>{linha}</p>
+                <LinhaDaSaida key={j} linha={linha} />
               ))}
             </div>
           ))}
-          {historico.length === 0 && (
-            <p className={estilos.suave}>
-              {idioma === "pt"
-                ? "Digite help para ver os comandos, ou man kayo para voltar."
-                : "Type help to see the commands, or man kayo to go back."}
-            </p>
-          )}
-          {sugestoes.length > 0 && (
-            <p className={estilos.ls}>
-              {sugestoes.map((o) => (
-                <span key={o}>{o}</span>
-              ))}
-            </p>
-          )}
+          {saidas.length === 0 && <p className={estilos.suave}>{s.dicaDoPrompt}</p>}
+          {sugestoes.length > 0 && <LinhaDaSaida linha={{ lista: sugestoes }} />}
           <form onSubmit={executar} className={estilos.linhaDoPrompt}>
             <label htmlFor="shell">
-              <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %
+              <Prompt />
             </label>
             <input
               id="shell"
