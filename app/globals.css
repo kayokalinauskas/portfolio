@@ -48,6 +48,19 @@
   color-scheme: dark;
 }
 
+/* As mono do sistema com o avanço de 0,6 em, o mesmo da IBM Plex Mono: com elas no lugar,
+   cada linha quebra no mesmo ponto antes e depois de a fonte chegar. As métricas verticais
+   são as da Plex (ascendente 1025, descendente 275 em 1000). */
+@font-face {
+  font-family: "Plex Mono Fallback";
+  src:
+    local("Courier New"), local("Liberation Mono"), local("Cousine"), local("Roboto Mono"), local("Droid Sans Mono"),
+    local("DejaVu Sans Mono"), local("Menlo");
+  ascent-override: 102.5%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
+}
+
 *,
 *::before,
 *::after {
