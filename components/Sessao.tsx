@@ -136,7 +136,6 @@ export default function Sessao({
   const router = useRouter();
 
   const login = useSyncExternalStore(semMudancas, lerLogin, () => "");
-  const [digitado, setDigitado] = useState<string | null>(null);
   const [modo, setModo] = useState<Modo>("less");
   const [posicao, setPosicao] = useState({ porcento: 0, fim: false });
   const [termo, setTermo] = useState("");
@@ -156,48 +155,6 @@ export default function Sessao({
   };
 
   useEffect(pintarBarraDoNavegador, []);
-
-  // A digitação de "man ..." só na primeira página da visita.
-  useEffect(() => {
-    const raiz = document.documentElement;
-    const lembrar = () => {
-      delete raiz.dataset.intro;
-      try {
-        sessionStorage.setItem("intro", "1");
-      } catch {
-        // sem armazenamento: a digitação volta na próxima página
-      }
-    };
-    if (!raiz.dataset.intro) {
-      lembrar();
-      return;
-    }
-    const encerrar = () => {
-      lembrar();
-      setDigitado(null);
-    };
-    const comando = `man ${slug}`;
-    let i = 0;
-    const relogio = window.setInterval(() => {
-      i += 1;
-      setDigitado(comando.slice(0, i));
-      if (i >= comando.length) {
-        window.clearInterval(relogio);
-        window.setTimeout(encerrar, 320);
-      }
-    }, 70);
-    const pular = () => {
-      window.clearInterval(relogio);
-      encerrar();
-    };
-    window.addEventListener("keydown", pular, { once: true });
-    window.addEventListener("pointerdown", pular, { once: true });
-    return () => {
-      window.clearInterval(relogio);
-      window.removeEventListener("keydown", pular);
-      window.removeEventListener("pointerdown", pular);
-    };
-  }, [slug]);
 
   // A posição na barra do less acompanha a rolagem: no máximo uma medida por quadro, e a
   // barra só redesenha quando o número muda.
@@ -285,7 +242,6 @@ export default function Sessao({
       }
       const alvo = e.target instanceof Element ? e.target : document.body;
       if (alvo.closest("input, textarea, select, [contenteditable]")) return;
-      if (document.documentElement.dataset.intro) return;
       const lh = alturaDaLinha();
       const janela = window.innerHeight - lh * 3;
       if (modo === "ajuda") {
@@ -430,7 +386,7 @@ export default function Sessao({
   return (
     <div className={estilos.sessao}>
       <a href="#manual" className={estilos.pular}>
-        {s.pularIntro}
+        {s.pularParaOConteudo}
       </a>
 
       <div className={estilos.topo} aria-hidden="true">
@@ -438,21 +394,11 @@ export default function Sessao({
           Last login: <span className={estilos.login}>{login}</span> on ttys001
         </p>
         <p>
-          <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
-          {/* durante a digitação, o texto digitado toma o lugar do comando (que só existe
-              pronto para quem não roda JavaScript); lado a lado, ele começava deslocado */}
-          {digitado === null ? (
-            <span className={estilos.comandoCompleto}>man {slug}</span>
-          ) : (
-            <>
-              {digitado}
-              <span className={estilos.cursor} />
-            </>
-          )}
+          <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> % man {slug}
         </p>
       </div>
 
-      <main className={estilos.conteudo}>{children}</main>
+      <main>{children}</main>
 
       {modo === "ajuda" && (
         <div ref={painelDaAjuda} className={estilos.painel} role="dialog" aria-label={s.ajuda.titulo}>

@@ -67,20 +67,6 @@
   }
 }
 
-/* A digitação: enquanto ela roda, o comando completo e o manual esperam.
-   Se o JavaScript não rodar, a animação revela tudo sozinha em 2 s. */
-:global(html[data-intro]) .comandoCompleto,
-:global(html[data-intro]) .conteudo {
-  visibility: hidden;
-  animation: revelar 0s linear 2s forwards;
-}
-
-@keyframes revelar {
-  to {
-    visibility: visible;
-  }
-}
-
 /* ---------- a página de manual ---------- */
 
 .manual {
