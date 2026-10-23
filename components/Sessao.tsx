@@ -437,9 +437,16 @@ export default function Sessao({
         <p className={estilos.suave}>Last login: {login || " "} on ttys001</p>
         <p>
           <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %{" "}
-          <span className={estilos.comandoCompleto}>man {slug}</span>
-          {digitado !== null && <span>{digitado}</span>}
-          {digitado !== null && <span className={estilos.cursor} />}
+          {/* durante a digitação, o texto digitado toma o lugar do comando (que só existe
+              pronto para quem não roda JavaScript); lado a lado, ele começava deslocado */}
+          {digitado === null ? (
+            <span className={estilos.comandoCompleto}>man {slug}</span>
+          ) : (
+            <>
+              {digitado}
+              <span className={estilos.cursor} />
+            </>
+          )}
         </p>
       </div>
 
