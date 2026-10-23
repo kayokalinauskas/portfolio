@@ -29,7 +29,7 @@ jobs:
       # os testes no navegador rodam contra o build de produção
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: relatorio-do-playwright
