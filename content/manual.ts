@@ -412,20 +412,6 @@ const kayoPt: Pagina = {
         { tipo: "texto", texto: "Português nativo, inglês avançado. Fuso de São Paulo (UTC-3)." },
       ],
     },
-    {
-      titulo: "EXEMPLOS",
-      blocos: [
-        { tipo: "texto", texto: "Aperte **q** para abrir o shell e rodar estes comandos; o Tab completa o resto." },
-        {
-          tipo: "exemplo",
-          comando: "man kayo-ozamigos",
-          texto: "Abre a página de um projeto. Os três estão em COMANDOS.",
-          abre: caminho("pt", "kayo-ozamigos"),
-        },
-        { tipo: "exemplo", comando: "kayo --sql", texto: "Explica uma das opções. Todas estão em OPÇÕES.", abre: "#opcoes" },
-        { tipo: "exemplo", comando: "kayo --curriculo", texto: "Baixa o currículo em PDF.", abre: CURRICULO.pt.url },
-      ],
-    },
     { titulo: "COMANDOS", blocos: comandos(projetosPt) },
     { titulo: "OPÇÕES", blocos: itensDasOpcoes(OPCOES.pt) },
     {
@@ -773,25 +759,6 @@ const kayoEn: Pagina = {
             "Full stack developer working with Java, Spring Boot, React and TypeScript, with over ten years of experience in ERP systems, support and API integrations. Currently supports integration projects at Bluesoft and builds personal projects end to end.",
         },
         { tipo: "texto", texto: "Native Portuguese, advanced English. São Paulo time zone (UTC-3)." },
-      ],
-    },
-    {
-      titulo: "EXAMPLES",
-      blocos: [
-        { tipo: "texto", texto: "Press **q** to open the shell and run these commands; Tab completes the rest." },
-        {
-          tipo: "exemplo",
-          comando: "man kayo-ozamigos",
-          texto: "Opens a project page. All three are listed under COMMANDS.",
-          abre: caminho("en", "kayo-ozamigos"),
-        },
-        {
-          tipo: "exemplo",
-          comando: "kayo --sql",
-          texto: "Explains one of the options. All of them are under OPTIONS.",
-          abre: "#options",
-        },
-        { tipo: "exemplo", comando: "kayo --resume", texto: "Downloads the resume as a PDF.", abre: CURRICULO.en.url },
       ],
     },
     { titulo: "COMMANDS", blocos: comandos(projetosEn) },
