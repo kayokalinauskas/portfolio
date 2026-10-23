@@ -24,7 +24,15 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [{ source: "/pt-BR", destination: "/", permanent: true }];
+    return [
+      { source: "/pt-BR", destination: "/", permanent: true },
+      // os currículos do site antigo, que podem estar em links já enviados
+      { source: "/assets/CV-Kayo-Kalinauskas-pt-BR.pdf", destination: "/curriculo.pdf", permanent: true },
+      { source: "/assets/CV-Kayo-Kalinauskas-en.pdf", destination: "/resume.pdf", permanent: true },
+      // quem digita o nome da página, como no "man kayo", cai na página principal
+      { source: "/kayo", destination: "/", permanent: true },
+      { source: "/en/kayo", destination: "/en", permanent: true },
+    ];
   },
 };
 

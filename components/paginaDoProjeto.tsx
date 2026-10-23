@@ -12,7 +12,7 @@ export function paginasEstaticas() {
   return SUBPAGINAS.map((pagina) => ({ pagina }));
 }
 
-function validar(pagina: string): Slug {
+export function validar(pagina: string): Slug {
   if (!(SUBPAGINAS as readonly string[]).includes(pagina)) notFound();
   return pagina as Slug;
 }

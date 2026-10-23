@@ -1,19 +1,34 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { MANUAL, SESSAO, type Idioma } from "@/content/manual";
+import { MANUAL, SESSAO, type Idioma, type Slug } from "@/content/manual";
+import { semMarcacao } from "./Texto";
 
-// A prévia ao colar o link no LinkedIn ou no WhatsApp: o topo da página de manual.
+// A prévia ao colar o link no LinkedIn ou no WhatsApp: o topo da página de manual, uma por página.
 export const tamanhoDaPrevia = { width: 1200, height: 630 };
 
 const regular = readFile(join(process.cwd(), "assets/fontes/plex-mono-400.ttf"));
 const negrito = readFile(join(process.cwd(), "assets/fontes/plex-mono-600.ttf"));
 
-export async function imagemDePrevia(idioma: Idioma) {
-  const p = MANUAL[idioma].kayo;
+// As primeiras frases do texto, até caberem em quatro linhas da imagem.
+function resumir(texto: string, limite = 180) {
+  const frases = texto.split(/(?<=\.) /);
+  let resumo = frases[0];
+  for (const frase of frases.slice(1)) {
+    if ((resumo + " " + frase).length > limite) break;
+    resumo += " " + frase;
+  }
+  return resumo;
+}
+
+export async function imagemDePrevia(idioma: Idioma, slug: Slug = "kayo") {
+  const p = MANUAL[idioma][slug];
   const nome = p.secoes[0];
   const descricao = p.secoes[2];
-  const resumo = descricao.blocos[0].tipo === "texto" ? descricao.blocos[0].texto : "";
+  const linhaDoNome = nome.blocos[0].tipo === "texto" ? semMarcacao(nome.blocos[0].texto) : slug;
+  const [comando, ...resto] = linhaDoNome.split(" - ");
+  const resumo = descricao.blocos[0].tipo === "texto" ? resumir(semMarcacao(descricao.blocos[0].texto)) : "";
+  const pagina = `${slug.toUpperCase()}(1)`;
   const fundo = "#fdf6e3";
   const texto = "#586e75";
   const forte = "#073642";
@@ -34,17 +49,18 @@ export async function imagemDePrevia(idioma: Idioma) {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>KAYO(1)</span>
+        <span>{pagina}</span>
         <span>{SESSAO[idioma].colecao}</span>
-        <span>KAYO(1)</span>
+        <span>{pagina}</span>
       </div>
       <div style={{ display: "flex", marginTop: 46, fontWeight: 600, color: forte }}>{nome.titulo}</div>
+      {/* o nome e a descrição lado a lado; uma descrição longa quebra na própria coluna */}
       <div style={{ display: "flex", marginLeft: 105 }}>
-        <span style={{ fontWeight: 600, color: forte }}>kayo</span>
-        <span>&nbsp;- Kayo Kalinauskas, {idioma === "pt" ? "desenvolvedor full stack" : "full stack developer"}</span>
+        <span style={{ fontWeight: 600, color: forte, flexShrink: 0 }}>{comando}</span>
+        <span style={{ flex: 1 }}>&nbsp;- {resto.join(" - ")}</span>
       </div>
       <div style={{ display: "flex", marginTop: 30, fontWeight: 600, color: forte }}>{descricao.titulo}</div>
-      <div style={{ display: "flex", marginLeft: 105, fontSize: 26 }}>{resumo.split(".")[0]}.</div>
+      <div style={{ display: "flex", marginLeft: 105, fontSize: 26 }}>{resumo}</div>
       <div
         style={{
           display: "flex",
@@ -55,7 +71,7 @@ export async function imagemDePrevia(idioma: Idioma) {
           fontSize: 26,
         }}
       >
-        Manual page kayo(1) line 1 (press h for help or q to quit)
+        Manual page {slug}(1) line 1 (press h for help)
       </div>
     </div>,
     {

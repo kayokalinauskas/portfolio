@@ -195,11 +195,11 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "campos",
             linhas: [
-              ["**servidor**", "Java 25 e Spring Boot 4.1. Salas e sinalização por WebSocket; o servidor nunca recebe vídeo."],
-              ["**interface**", "React 19, TypeScript e Vite."],
+              ["**backend**", "Java 25 e Spring Boot 4.1. Salas e signaling por WebSocket; o servidor nunca recebe vídeo."],
+              ["**frontend**", "React 19, TypeScript e Vite."],
               [
                 "**vídeo**",
-                "WebRTC peer-to-peer. H.265 codificado na GPU, com volta para H.264 quando um dos lados não suporta.",
+                "WebRTC peer-to-peer. H.265 codificado na GPU, com fallback para H.264 quando um dos lados não suporta.",
               ],
               ["**voz**", "Opus, com redução de ruído por RNNoise (WebAssembly) num AudioWorklet."],
               [
@@ -223,13 +223,12 @@ const pt: Record<Slug, Pagina> = {
             tipo: "item",
             rotulo: "**Captura de tela própria**",
             texto:
-              "A captura do navegador limitava a taxa de quadros em jogos pesados. O módulo em C# captura pela GPU e envia os quadros ao Electron por um canal dedicado, com controle de fluxo.",
+              "A captura do navegador limitava o FPS em jogos pesados. O módulo em C# captura pela GPU e envia os quadros ao Electron por um canal dedicado, com controle de fluxo.",
           },
           {
             tipo: "item",
             rotulo: "**Medir antes de mudar**",
-            texto:
-              "Métricas do WebRTC a cada segundo e testes de bancada reproduzíveis guiaram as mudanças de captura, codec e rede.",
+            texto: "Métricas do WebRTC a cada segundo e benchmarks reproduzíveis guiaram as mudanças de captura, codec e rede.",
           },
         ],
       },
@@ -239,7 +238,7 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "texto",
             texto:
-              "Senhas com PBKDF2 e sal; limite de tentativas por endereço; prévias de links só de domínios permitidos, contra SSRF; Electron com contextIsolation e sandbox.",
+              "Hash de senhas com PBKDF2 e salt; rate limiting por IP; preview de links só de domínios de uma allowlist, contra SSRF; Electron com contextIsolation e sandbox.",
           },
         ],
       },
@@ -249,7 +248,7 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "texto",
             texto:
-              "Cinco camadas no GitHub Actions a cada push: servidor (JUnit), interface (Vitest), áudio, ponta a ponta (Playwright) e app. Os releases saem por pipeline, com atualização automática do instalador.",
+              "Cinco camadas no GitHub Actions a cada push: backend (JUnit), frontend (Vitest), áudio, E2E (Playwright) e app. Os releases saem por pipeline de CI/CD, com auto-update do instalador.",
           },
         ],
       },
@@ -286,7 +285,7 @@ const pt: Record<Slug, Pagina> = {
           {
             tipo: "campos",
             linhas: [
-              ["**entrada**", "Planilhas .xlsx, .xls e .csv, com prévia antes do envio."],
+              ["**entrada**", "Planilhas .xlsx, .xls e .csv, com preview antes do envio."],
               ["**validação**", "Linhas inválidas são apontadas antes do envio, não durante."],
               ["**envio**", "Progresso linha a linha e relatório de erros exportável em CSV."],
               ["**histórico**", "Os envios ficam guardados no navegador entre as sessões."],
@@ -508,8 +507,11 @@ const en: Record<Slug, Pagina> = {
           {
             tipo: "campos",
             linhas: [
-              ["**server**", "Java 25 and Spring Boot 4.1. Rooms and signaling over WebSocket; the server never receives video."],
-              ["**interface**", "React 19, TypeScript and Vite."],
+              [
+                "**backend**",
+                "Java 25 and Spring Boot 4.1. Rooms and signaling over WebSocket; the server never receives video.",
+              ],
+              ["**frontend**", "React 19, TypeScript and Vite."],
               ["**video**", "Peer-to-peer WebRTC. H.265 encoded on the GPU, falling back to H.264 when one side lacks support."],
               ["**voice**", "Opus, with RNNoise noise suppression (WebAssembly) in an AudioWorklet."],
               [
@@ -538,7 +540,7 @@ const en: Record<Slug, Pagina> = {
           {
             tipo: "item",
             rotulo: "**Measure before changing**",
-            texto: "Per-second WebRTC metrics and reproducible bench tests guided the changes to capture, codec and network.",
+            texto: "Per-second WebRTC metrics and reproducible benchmarks guided the changes to capture, codec and network.",
           },
         ],
       },
@@ -548,7 +550,7 @@ const en: Record<Slug, Pagina> = {
           {
             tipo: "texto",
             texto:
-              "Salted PBKDF2 password hashes; per-address rate limiting; link previews only from allowed domains, against SSRF; Electron with contextIsolation and sandbox.",
+              "Password hashing with PBKDF2 and salt; per-IP rate limiting; link previews only from an allowlist of domains, against SSRF; Electron with contextIsolation and sandbox.",
           },
         ],
       },
@@ -558,7 +560,7 @@ const en: Record<Slug, Pagina> = {
           {
             tipo: "texto",
             texto:
-              "Five layers on GitHub Actions on every push: server (JUnit), interface (Vitest), audio, end to end (Playwright) and app. Releases ship through a pipeline, with automatic installer updates.",
+              "Five layers on GitHub Actions on every push: backend (JUnit), frontend (Vitest), audio, E2E (Playwright) and app. Releases ship through a CI/CD pipeline, with installer auto-updates.",
           },
         ],
       },
