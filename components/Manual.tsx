@@ -49,6 +49,24 @@ function BlocoDoManual({ bloco, idioma }: { bloco: Bloco; idioma: Idioma }) {
           </div>
         </div>
       );
+    case "exemplo":
+      // o comando, que abre o que ele descreve quando há para onde ir, e a explicação embaixo
+      return (
+        <div className={estilos.item}>
+          <div className={estilos.rotulo}>
+            {bloco.abre ? (
+              <a href={bloco.abre} {...(/^https?:/.test(bloco.abre) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                <b>{bloco.comando}</b>
+              </a>
+            ) : (
+              <b>{bloco.comando}</b>
+            )}
+          </div>
+          <div className={estilos.corpo}>
+            <Texto texto={bloco.texto} idioma={idioma} />
+          </div>
+        </div>
+      );
     case "campos": {
       const largura = Math.max(...bloco.linhas.map(([r]) => semMarcacao(r).length)) + 2;
       return (
@@ -67,6 +85,16 @@ function BlocoDoManual({ bloco, idioma }: { bloco: Bloco; idioma: Idioma }) {
       );
     }
   }
+}
+
+// O endereço de uma seção: "VEJA TAMBÉM" vira "veja-tambem".
+function ancora(titulo: string) {
+  return titulo
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 // Os dados da pessoa para os buscadores (schema.org), só na página principal.
@@ -92,7 +120,6 @@ export default function Manual({ idioma, slug }: { idioma: Idioma; slug: Slug })
   const pagina = MANUAL[idioma][slug];
   const s = SESSAO[idioma];
   const nome = `${slug.toUpperCase()}(1)`;
-  const [primeira, ...resto] = pagina.secoes;
 
   return (
     <Sessao idioma={idioma} slug={slug} curriculo={CURRICULO[idioma]}>
@@ -104,31 +131,28 @@ export default function Manual({ idioma, slug }: { idioma: Idioma; slug: Slug })
           <span>{nome}</span>
         </header>
 
-        <section className={estilos.secao} aria-labelledby="nome">
-          <h2 className={estilos.titulo}>{primeira.titulo}</h2>
-          <div className={estilos.blocos}>
-            {primeira.blocos.map((bloco, i) =>
-              bloco.tipo === "texto" ? (
-                <h1 key={i} id="nome" className={estilos.paragrafo}>
-                  <Texto texto={bloco.texto} idioma={idioma} />
-                </h1>
-              ) : (
-                <BlocoDoManual key={i} bloco={bloco} idioma={idioma} />
-              ),
-            )}
-          </div>
-        </section>
-
-        {resto.map((secao) => (
-          <section key={secao.titulo} className={estilos.secao}>
-            <h2 className={estilos.titulo}>{secao.titulo}</h2>
-            <div className={estilos.blocos}>
-              {secao.blocos.map((bloco, i) => (
-                <BlocoDoManual key={i} bloco={bloco} idioma={idioma} />
-              ))}
-            </div>
-          </section>
-        ))}
+        {pagina.secoes.map((secao, i) => {
+          const id = ancora(secao.titulo);
+          return (
+            <section key={id} className={estilos.secao} aria-labelledby={id}>
+              {/* como no HTML do mandoc: o título é o link da própria seção (/#historico) */}
+              <h2 id={id} className={estilos.titulo}>
+                <a href={`#${id}`}>{secao.titulo}</a>
+              </h2>
+              <div className={estilos.blocos}>
+                {secao.blocos.map((bloco, j) =>
+                  i === 0 && bloco.tipo === "texto" ? (
+                    <h1 key={j} className={estilos.paragrafo}>
+                      <Texto texto={bloco.texto} idioma={idioma} />
+                    </h1>
+                  ) : (
+                    <BlocoDoManual key={j} bloco={bloco} idioma={idioma} />
+                  ),
+                )}
+              </div>
+            </section>
+          );
+        })}
 
         <footer className={estilos.rodape}>
           <span>{VERSAO}</span>

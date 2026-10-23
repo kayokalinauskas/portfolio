@@ -15,7 +15,9 @@ export type Bloco =
   | { tipo: "texto"; texto: string }
   | { tipo: "item"; rotulo: string; texto: string }
   | { tipo: "campos"; linhas: [string, string][] }
-  | { tipo: "sinopse"; linhas: string[] };
+  | { tipo: "sinopse"; linhas: string[] }
+  // um comando da seção EXEMPLOS; o prompt do q executa os mesmos comandos
+  | { tipo: "exemplo"; comando: string; texto: string; abre?: string };
 
 export type Secao = { titulo: string; blocos: Bloco[] };
 
@@ -34,6 +36,8 @@ export const GITHUB = "https://github.com/kayokalinauskas";
 export const LINKEDIN = "https://www.linkedin.com/in/kayokalinauskas";
 const OZAMIGOS_WEB = "https://ozamigos.onrender.com/";
 const OZAMIGOS_WINDOWS = `${GITHUB}/ozamigos/releases/latest`;
+const OZAMIGOS_SITE = "https://kayokalinauskas.github.io/ozamigos/";
+const FINALIZADORAS_WEB = "https://kayokalinauskas.github.io/bluesoft-subfinalizadora/";
 const WEB_STORE = "https://chromewebstore.google.com/detail/acelerato-helper/lanlcaoldikialljjdbngbpelggnjmab";
 
 export const CURRICULO: Record<Idioma, { arquivo: string; url: string }> = {
@@ -190,6 +194,29 @@ const pt: Record<Slug, Pagina> = {
         ],
       },
       {
+        titulo: "EXEMPLOS",
+        blocos: [
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos",
+            texto: "Abre o site do Ozamigos, com as telas e o que o app faz.",
+            abre: OZAMIGOS_SITE,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos --web",
+            texto: "Abre a versão no navegador: crie um grupo com nome e senha e transmita a tela para quem entrar nele.",
+            abre: OZAMIGOS_WEB,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos --windows",
+            texto: "Baixa o instalador do app para Windows, com a captura de tela própria e o som do PC sem eco.",
+            abre: OZAMIGOS_WINDOWS,
+          },
+        ],
+      },
+      {
         titulo: "ARQUITETURA",
         blocos: [
           {
@@ -252,6 +279,7 @@ const pt: Record<Slug, Pagina> = {
           },
         ],
       },
+      { titulo: "SITE", blocos: [{ tipo: "texto", texto: `@{${OZAMIGOS_SITE}}` }] },
       { titulo: "REPOSITÓRIO", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/ozamigos}` }] },
       { titulo: "VEJA TAMBÉM", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-finalizadoras(1)}, {kayo-acelerato(1)}" }] },
     ],
@@ -268,7 +296,15 @@ const pt: Record<Slug, Pagina> = {
           { tipo: "texto", texto: "**kayo-finalizadoras** - mapeamento de subfinalizadoras em lote pela API do ERP Bluesoft" },
         ],
       },
-      { titulo: "SINOPSE", blocos: [{ tipo: "sinopse", linhas: ["**kayo finalizadoras** [~planilha.xlsx~ | ~planilha.csv~]"] }] },
+      {
+        titulo: "SINOPSE",
+        blocos: [
+          {
+            tipo: "sinopse",
+            linhas: [`**kayo finalizadoras** [[--web](${FINALIZADORAS_WEB})] [~planilha.xlsx~ | ~planilha.csv~]`],
+          },
+        ],
+      },
       {
         titulo: "DESCRIÇÃO",
         blocos: [
@@ -276,6 +312,22 @@ const pt: Record<Slug, Pagina> = {
             tipo: "texto",
             texto:
               "Ferramenta interna da Bluesoft. O time de implantação passou a fazer os mapeamentos sozinho, em lote, pela API REST do ERP, sem abrir pedido na fila de outra equipe.",
+          },
+        ],
+      },
+      {
+        titulo: "EXEMPLOS",
+        blocos: [
+          {
+            tipo: "exemplo",
+            comando: "kayo finalizadoras --web",
+            texto: "Abre a ferramenta, publicada no GitHub Pages.",
+            abre: FINALIZADORAS_WEB,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo finalizadoras planilha.xlsx",
+            texto: "Lê a planilha num Web Worker, aponta as linhas inválidas e mostra um preview antes do envio.",
           },
         ],
       },
@@ -326,6 +378,17 @@ const pt: Record<Slug, Pagina> = {
             tipo: "texto",
             texto:
               "Extensão publicada na Chrome Web Store e usada pela equipe de atendimento da Bluesoft, com mais de 60 usuários. Reduz o tempo de navegação entre chamados e evita a perda de comentários.",
+          },
+        ],
+      },
+      {
+        titulo: "EXEMPLOS",
+        blocos: [
+          { tipo: "exemplo", comando: "kayo acelerato", texto: "Instala a extensão pela Chrome Web Store.", abre: WEB_STORE },
+          {
+            tipo: "exemplo",
+            comando: "kayo acelerato 4821",
+            texto: "Com a extensão aberta, o número do chamado e Enter abrem a página dele direto.",
           },
         ],
       },
@@ -503,6 +566,30 @@ const en: Record<Slug, Pagina> = {
         ],
       },
       {
+        titulo: "EXAMPLES",
+        blocos: [
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos",
+            texto: "Opens the Ozamigos website, with screenshots and what the app does.",
+            abre: OZAMIGOS_SITE,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos --web",
+            texto:
+              "Opens the browser version: create a group with a name and password and stream your screen to whoever joins it.",
+            abre: OZAMIGOS_WEB,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo ozamigos --windows",
+            texto: "Downloads the Windows app installer, with its own screen capture and PC audio without echo.",
+            abre: OZAMIGOS_WINDOWS,
+          },
+        ],
+      },
+      {
         titulo: "ARCHITECTURE",
         blocos: [
           {
@@ -565,6 +652,7 @@ const en: Record<Slug, Pagina> = {
           },
         ],
       },
+      { titulo: "WEBSITE", blocos: [{ tipo: "texto", texto: `@{${OZAMIGOS_SITE}}` }] },
       { titulo: "REPOSITORY", blocos: [{ tipo: "texto", texto: `@{${GITHUB}/ozamigos}` }] },
       { titulo: "SEE ALSO", blocos: [{ tipo: "texto", texto: "{kayo(1)}, {kayo-finalizadoras(1)}, {kayo-acelerato(1)}" }] },
     ],
@@ -579,7 +667,12 @@ const en: Record<Slug, Pagina> = {
         titulo: "NAME",
         blocos: [{ tipo: "texto", texto: "**kayo-finalizadoras** - bulk payment method mapping through the Bluesoft ERP API" }],
       },
-      { titulo: "SYNOPSIS", blocos: [{ tipo: "sinopse", linhas: ["**kayo finalizadoras** [~sheet.xlsx~ | ~sheet.csv~]"] }] },
+      {
+        titulo: "SYNOPSIS",
+        blocos: [
+          { tipo: "sinopse", linhas: [`**kayo finalizadoras** [[--web](${FINALIZADORAS_WEB})] [~sheet.xlsx~ | ~sheet.csv~]`] },
+        ],
+      },
       {
         titulo: "DESCRIPTION",
         blocos: [
@@ -587,6 +680,22 @@ const en: Record<Slug, Pagina> = {
             tipo: "texto",
             texto:
               "Internal tool at Bluesoft. The implementation team now runs the mappings on their own, in bulk, through the ERP REST API, without filing a request in another team's queue.",
+          },
+        ],
+      },
+      {
+        titulo: "EXAMPLES",
+        blocos: [
+          {
+            tipo: "exemplo",
+            comando: "kayo finalizadoras --web",
+            texto: "Opens the tool, published on GitHub Pages.",
+            abre: FINALIZADORAS_WEB,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo finalizadoras sheet.xlsx",
+            texto: "Parses the spreadsheet in a Web Worker, flags invalid rows and shows a preview before sending.",
           },
         ],
       },
@@ -637,6 +746,22 @@ const en: Record<Slug, Pagina> = {
             tipo: "texto",
             texto:
               "Extension published on the Chrome Web Store and used by the Bluesoft support team, with 60+ users. It cuts the time spent moving between tickets and prevents lost comments.",
+          },
+        ],
+      },
+      {
+        titulo: "EXAMPLES",
+        blocos: [
+          {
+            tipo: "exemplo",
+            comando: "kayo acelerato",
+            texto: "Installs the extension from the Chrome Web Store.",
+            abre: WEB_STORE,
+          },
+          {
+            tipo: "exemplo",
+            comando: "kayo acelerato 4821",
+            texto: "With the extension open, a ticket number and Enter open that ticket directly.",
           },
         ],
       },
@@ -699,6 +824,7 @@ export const SESSAO = {
     qualPagina: "Qual página do manual você quer?",
     semArquivo: (a: string) => `O arquivo ${a} não existe.`,
     usoDoLang: "uso: lang pt|en",
+    usoDoKayo: "uso: kayo {ozamigos | finalizadoras | acelerato} [opções], ou kayo {--curriculo | --email}",
     ajuda: {
       titulo: "RESUMO DOS COMANDOS DO LESS",
       rodape: "Aperte q ou h para voltar.",
@@ -725,7 +851,10 @@ export const SESSAO = {
       ["mail", "escreve um e-mail"],
       ["theme", "troca o tema"],
       ["lang en", "muda para inglês"],
+      ["kayo ozamigos --web", "roda um exemplo das páginas dos projetos"],
       ["clear", "limpa a tela"],
+      ["Tab", "completa o comando ou o nome da página"],
+      ["↑ ↓", "volta aos comandos anteriores"],
     ] as [string, string][],
   },
   en: {
@@ -753,6 +882,7 @@ export const SESSAO = {
     qualPagina: "What manual page do you want?",
     semArquivo: (a: string) => `The file ${a} does not exist.`,
     usoDoLang: "usage: lang pt|en",
+    usoDoKayo: "usage: kayo {ozamigos | finalizadoras | acelerato} [options], or kayo {--resume | --email}",
     ajuda: {
       titulo: "SUMMARY OF LESS COMMANDS",
       rodape: "Press q or h to return.",
@@ -779,7 +909,10 @@ export const SESSAO = {
       ["mail", "write an email"],
       ["theme", "toggle the theme"],
       ["lang pt", "switch to Portuguese"],
+      ["kayo ozamigos --web", "run an example from the project pages"],
       ["clear", "clear the screen"],
+      ["Tab", "complete the command or page name"],
+      ["↑ ↓", "go back to previous commands"],
     ] as [string, string][],
   },
 };

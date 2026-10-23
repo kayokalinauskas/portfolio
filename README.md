@@ -6,18 +6,18 @@ Meu portfólio, escrito como uma página de manual do Unix: `man kayo`. Cada pro
 
 ## Como se usa
 
-| Tecla           | O que faz                                                                                                   |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `j` `k` `↓` `↑` | Rola uma linha                                                                                              |
-| `espaço` `b`    | Rola uma tela                                                                                               |
-| `g` `G`         | Vai ao começo e ao fim                                                                                      |
-| `/`             | Busca na página (`n` e `N` para o próximo e o anterior)                                                     |
-| `t`             | Troca o tema (Solarized claro ou Tomorrow Night)                                                            |
-| `l`             | Troca o idioma (português em `/`, inglês em `/en`)                                                          |
-| `h`             | Mostra a ajuda                                                                                              |
-| `q`             | Abre o prompt do shell: `help`, `ls`, `man kayo-ozamigos`, `open curriculo.pdf`, `mail`, `theme`, `lang en` |
+| Tecla           | O que faz                                                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `j` `k` `↓` `↑` | Rola uma linha                                                                                                                                                                                                  |
+| `espaço` `b`    | Rola uma tela                                                                                                                                                                                                   |
+| `g` `G`         | Vai ao começo e ao fim                                                                                                                                                                                          |
+| `/`             | Busca na página (`n` e `N` para o próximo e o anterior)                                                                                                                                                         |
+| `t`             | Troca o tema (Solarized claro ou Tomorrow Night)                                                                                                                                                                |
+| `l`             | Troca o idioma (português em `/`, inglês em `/en`)                                                                                                                                                              |
+| `h`             | Mostra a ajuda                                                                                                                                                                                                  |
+| `q`             | Abre o prompt do shell: `help`, `ls`, `man kayo-ozamigos`, os exemplos das páginas (`kayo ozamigos --web`), `open curriculo.pdf`, `mail`, `theme`, `lang en`. Tab completa e ↑ ↓ voltam aos comandos anteriores |
 
-A barra de baixo mostra as teclas com o que cada uma faz, e cada uma é um botão, para quem usa mouse ou celular.
+Cada título de seção é um link para ela (`/#historico`, `/kayo-ozamigos#exemplos`). A barra de baixo mostra as teclas com o que cada uma faz, e cada uma é um botão, para quem usa mouse ou celular.
 
 ## Tecnologias
 

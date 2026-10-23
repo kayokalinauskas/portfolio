@@ -1,8 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
-import { caminho, EMAIL, PAGINAS, SESSAO, type Idioma, type Slug } from "@/content/manual";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+  type KeyboardEvent as TeclaDoReact,
+  type ReactNode,
+} from "react";
+import { caminho, EMAIL, MANUAL, PAGINAS, SESSAO, type Bloco, type Idioma, type Slug } from "@/content/manual";
 import estilos from "./manual.module.css";
 
 type Modo = "less" | "busca" | "ajuda" | "prompt";
@@ -50,6 +59,28 @@ function pintarBarraDoNavegador() {
   const fundo = getComputedStyle(document.documentElement).getPropertyValue("--fundo").trim();
   if (!fundo) return;
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", fundo));
+}
+
+// Os comandos já digitados no prompt, como o histórico de um shell: valem para a visita
+// inteira, também depois de abrir outra página do manual.
+const comandosAnteriores: string[] = [];
+
+type Exemplo = Extract<Bloco, { tipo: "exemplo" }>;
+
+// Os comandos da seção EXEMPLOS de todas as páginas: o prompt executa os mesmos.
+function exemplosDe(idioma: Idioma): Exemplo[] {
+  return Object.values(MANUAL[idioma]).flatMap((p) =>
+    p.secoes.flatMap((secao) => secao.blocos.filter((b): b is Exemplo => b.tipo === "exemplo")),
+  );
+}
+
+// O começo que todas as opções têm em comum: o que o Tab pode completar sem escolher.
+function prefixoComum(opcoes: string[]) {
+  return opcoes.reduce((prefixo, opcao) => {
+    let i = 0;
+    while (i < prefixo.length && prefixo[i] === opcao[i]) i++;
+    return prefixo.slice(0, i);
+  });
 }
 
 function trocarTema() {
@@ -142,6 +173,9 @@ export default function Sessao({
   const [busca, setBusca] = useState<{ faixas: Range[]; atual: number } | null>(null);
   const [historico, setHistorico] = useState<Saida[]>([]);
   const [entrada, setEntrada] = useState("");
+  const [sugestoes, setSugestoes] = useState<string[]>([]);
+  const noHistorico = useRef<number | null>(null);
+  const rascunho = useRef("");
 
   const entradaRef = useRef<HTMLInputElement>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
@@ -295,23 +329,44 @@ export default function Sessao({
   // Os comandos do prompt que aparece depois do q.
   const executar = (e: FormEvent) => {
     e.preventDefault();
-    const comando = entrada.trim();
+    const comando = entrada.trim().replace(/\s+/g, " ");
     setEntrada("");
+    setSugestoes([]);
+    noHistorico.current = null;
     if (!comando) return;
+    if (comandosAnteriores.at(-1) !== comando) comandosAnteriores.push(comando);
     const [nome, ...args] = comando.split(/\s+/);
     const responder = (...linhas: ReactNode[]) => setHistorico((h) => [...h, { comando, linhas }]);
     const paginas = PAGINAS as readonly string[];
 
+    const abrirManual = (alvo: string) => {
+      setHistorico([]);
+      setModo("less");
+      if (alvo === slug) window.scrollTo({ top: 0 });
+      else router.push(caminho(idioma, alvo));
+    };
+    const abrir = (endereco: string) => {
+      responder();
+      if (/^https?:/.test(endereco)) window.open(endereco, "_blank", "noopener,noreferrer");
+      else window.location.href = endereco;
+    };
+
     switch (nome) {
+      case "kayo": {
+        const exemplo = exemplosDe(idioma).find((x) => x.comando === comando);
+        if (exemplo?.abre) return abrir(exemplo.abre);
+        if (exemplo) return responder(exemplo.texto);
+        if (!args.length) return abrirManual("kayo");
+        if (args[0] === "--curriculo" || args[0] === "--resume") return abrir(curriculo.url);
+        if (args[0] === "--email") return abrir(`mailto:${EMAIL}`);
+        if (paginas.includes(`kayo-${args[0]}`) && args.length === 1) return abrirManual(`kayo-${args[0]}`);
+        return responder(s.usoDoKayo);
+      }
       case "man": {
         const alvo = args[0];
         if (!alvo) return responder(s.qualPagina);
         if (!paginas.includes(alvo)) return responder(s.semManual(alvo));
-        setHistorico([]);
-        setModo("less");
-        if (alvo === slug) window.scrollTo({ top: 0 });
-        else router.push(caminho(idioma, alvo));
-        return;
+        return abrirManual(alvo);
       }
       case "ls":
         return responder(
@@ -364,6 +419,63 @@ export default function Sessao({
         return;
       default:
         return responder(s.naoEncontrado(nome));
+    }
+  };
+
+  // Tudo o que o prompt entende, inteiro, para o Tab completar.
+  const completaveis = [
+    "help",
+    "ls",
+    "clear",
+    "exit",
+    "mail",
+    "theme",
+    "whoami",
+    `open ${curriculo.arquivo}`,
+    "lang pt",
+    "lang en",
+    ...PAGINAS.map((p) => `man ${p}`),
+    "kayo",
+    `kayo ${idioma === "pt" ? "--curriculo" : "--resume"}`,
+    "kayo --email",
+    ...PAGINAS.filter((p) => p !== "kayo").map((p) => `kayo ${p.slice("kayo-".length)}`),
+    ...exemplosDe(idioma).map((x) => x.comando),
+  ];
+
+  // Tab completa, como no zsh; ↑ e ↓ andam pelos comandos anteriores.
+  const teclaNoPrompt = (e: TeclaDoReact<HTMLInputElement>) => {
+    if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      const opcoes = [...new Set(completaveis.filter((c) => c.startsWith(entrada) && c !== entrada.trimEnd()))];
+      if (!opcoes.length) return;
+      const comum = prefixoComum(opcoes);
+      if (comum.length > entrada.length) {
+        setEntrada(opcoes.length === 1 ? `${comum} ` : comum);
+        setSugestoes([]);
+      } else {
+        // sem nada a completar sozinho, mostra as opções (só a palavra que muda)
+        const inicio = entrada.lastIndexOf(" ") + 1;
+        setSugestoes([...new Set(opcoes.map((o) => o.slice(inicio).split(" ")[0]))]);
+      }
+      return;
+    }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      if (!comandosAnteriores.length) return;
+      e.preventDefault();
+      if (noHistorico.current === null) {
+        if (e.key === "ArrowDown") return;
+        rascunho.current = entrada;
+        noHistorico.current = comandosAnteriores.length;
+      }
+      const proximo = noHistorico.current + (e.key === "ArrowUp" ? -1 : 1);
+      if (proximo >= comandosAnteriores.length) {
+        noHistorico.current = null;
+        setEntrada(rascunho.current);
+      } else {
+        noHistorico.current = Math.max(0, proximo);
+        setEntrada(comandosAnteriores[noHistorico.current]);
+      }
+      setSugestoes([]);
     }
   };
 
@@ -433,6 +545,13 @@ export default function Sessao({
                 : "Type help to see the commands, or man kayo to go back."}
             </p>
           )}
+          {sugestoes.length > 0 && (
+            <p className={estilos.ls}>
+              {sugestoes.map((o) => (
+                <span key={o}>{o}</span>
+              ))}
+            </p>
+          )}
           <form onSubmit={executar} className={estilos.linhaDoPrompt}>
             <label htmlFor="shell">
               <span className={estilos.usuario}>kayo@kalinauskas</span> <span className={estilos.diretorio}>~</span> %
@@ -441,7 +560,11 @@ export default function Sessao({
               id="shell"
               ref={entradaRef}
               value={entrada}
-              onChange={(e) => setEntrada(e.target.value)}
+              onChange={(e) => {
+                setEntrada(e.target.value);
+                setSugestoes([]);
+              }}
+              onKeyDown={teclaNoPrompt}
               autoComplete="off"
               autoCapitalize="off"
               spellCheck={false}
